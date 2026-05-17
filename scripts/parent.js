@@ -241,7 +241,10 @@ window.deletePlayer = function(id) {
 window.resetDailyQuests = function() {
   if (!confirm('รีเซ็ตภารกิจวันนี้?')) return;
   const today = new Date().toISOString().split('T')[0];
+  // Track which players hit a new streak tier — we'll celebrate after save.
+  const earnedBonuses = [];
   state.players.forEach(p => {
+    const prevStreak = p.streak || 0;
     if (p.lastActivity) {
       const y = new Date(Date.now() - 86400000).toISOString().split('T')[0];
       if (p.lastActivity === y || p.lastActivity === today) {
@@ -251,8 +254,94 @@ window.resetDailyQuests = function() {
       }
     }
     p.completedQuests = [];
+    // Phase 3.6 — daily counter resets at midnight too.
+    if (window.refreshDailyEarned) refreshDailyEarned(p);
+    // If the streak got broken (reset to 0/1), unclaim past bonuses so they
+    // become available again on the next 7/14/30 run. Otherwise: did the new
+    // streak land on a tier they haven't claimed yet?
+    if (p.streak < prevStreak) p.streakBonusClaimed = {};
+    p.streakBonusClaimed = p.streakBonusClaimed || {};
+    if (window.STREAK_TIERS) {
+      for (const tier of STREAK_TIERS) {
+        if (p.streak >= tier.days && tier.bonus && !p.streakBonusClaimed[tier.days]) {
+          earnedBonuses.push({ player: p, tier });
+          p.streakBonusClaimed[tier.days] = true;
+          break; // one bonus per reset — they can earn the next on a future day
+        }
+      }
+    }
   });
   saveState();
   renderParentMode();
-  alert('รีเซ็ตเรียบร้อย!');
+  // Celebrate the first earned bonus (if any) — chain the rest if more than one
+  // child hit a milestone in the same reset.
+  if (earnedBonuses.length) {
+    grantStreakBonus(earnedBonuses[0], earnedBonuses.slice(1));
+  } else {
+    alert('รีเซ็ตเรียบร้อย!');
+  }
 };
+
+// Grant a single streak bonus, then chain to the next queued one. Recursive so
+// each celebration plays in order rather than stacking on top of each other.
+function grantStreakBonus(entry, queue) {
+  const { player, tier } = entry;
+  const next = () => {
+    if (queue.length) grantStreakBonus(queue[0], queue.slice(1));
+  };
+
+  if (tier.bonus === 'mysteryBox') {
+    // Random 5–20 stars, parent-friendly surprise. Goes straight into the
+    // dailyEarned counter so it still counts against the daily cap if any.
+    const bonusStars = 5 + Math.floor(Math.random() * 16); // 5..20
+    player.currentStars += bonusStars;
+    player.totalStars   += bonusStars;
+    saveState();
+    showModal({
+      iconText: '🎁',
+      title: '🎁 Mystery Box! 🎁',
+      text: tier.label + '\n' + player.name + ' ได้ ⭐ ' + bonusStars + ' ดาว เซอร์ไพรส์!',
+      buttons: [{ text: 'เย้! 🎉', primary: true, onclick: () => { closeModal(); next(); } }]
+    });
+    if (typeof launchConfetti === 'function') launchConfetti();
+    return;
+  }
+
+  if (tier.bonus === 'rainbowEgg' || tier.bonus === 'legendaryEgg') {
+    // Reward = a hatch, not a stat dump. Switch to the kid's dashboard and play
+    // the cinematic with the right drop table.
+    const eggType = (tier.bonus === 'legendaryEgg') ? 'crown' : 'rainbow';
+    state.currentPlayer = player.id;
+    saveState();
+    showModal({
+      iconText: (tier.bonus === 'legendaryEgg') ? '🐉' : '🌈',
+      title: tier.label,
+      text: player.name + ' ได้ไข่พิเศษ! กดเพื่อฟัก ✨',
+      buttons: [{
+        text: 'ฟักเลย! ✨', primary: true,
+        onclick: () => {
+          closeModal();
+          showScreen('dashboard');
+          if (typeof renderDashboard === 'function') renderDashboard();
+          setTimeout(() => {
+            if (window.runHatchSequence) runHatchSequence(player, eggType);
+            // Bonus-egg hatch shouldn't double-count against player.hatched
+            // (those slots are for stars-earned milestones). runHatchSequence
+            // increments them anyway, so roll it back here.
+            setTimeout(() => {
+              if (player.hatched && player.hatched[eggType] > 0) {
+                player.hatched[eggType] -= 1;
+                saveState();
+              }
+            }, 100);
+            // Chain after the cinematic plus modal finish (~9s for legendary).
+            setTimeout(next, 10000);
+          }, 400);
+        }
+      }]
+    });
+    return;
+  }
+
+  next();
+}

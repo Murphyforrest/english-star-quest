@@ -47,23 +47,48 @@ window.completeQuest = function(qid, cardEl) {
   if (!p) return;
   const q = getPlayerQuests(p).find(x => x.id === qid);
   if (!q || p.completedQuests.indexOf(qid) !== -1) return;
+
+  // Phase 3.6 — apply streak multiplier AND clamp by daily cap so a kid can't
+  // grind 200 stars in one afternoon. calcQuestStars also resets dailyEarned
+  // when the calendar day changes.
+  const calc = (window.calcQuestStars
+    ? calcQuestStars(p, q.stars)
+    : { effective: q.stars, multiplier: 1, capped: false });
+
+  if (calc.effective <= 0) {
+    // Hit the daily cap — gentle nudge instead of silently giving 0 stars.
+    if (typeof showFloatingText === 'function') {
+      showFloatingText('🌙 วันนี้พอแล้ว — พรุ่งนี้มาเก็บใหม่!');
+    }
+    return;
+  }
+
   p.completedQuests.push(qid);
-  let m = 1;
-  if (p.streak >= 7)      m = 2;
-  else if (p.streak >= 3) m = 1.5;
-  const earned = Math.round(q.stars * m);
+  p.dailyEarned.stars += calc.effective;
   const wasStage = getPetStageIndex(p.totalStars);
-  p.currentStars += earned;
-  p.totalStars   += earned;
+  p.currentStars += calc.effective;
+  p.totalStars   += calc.effective;
   p.lastActivity  = new Date().toISOString().split('T')[0];
   saveState();
-  if (cardEl) {
-    // BIG dramatic star reward — much more visible than before
-    bigStarReward(earned, cardEl);
+  if (cardEl) bigStarReward(calc.effective, cardEl);
+  // If the multiplier kicked in OR we got clipped by the cap, show a tiny note
+  // so the kid understands why they earned more (or less) than the card said.
+  if (calc.multiplier > 1 && !calc.capped && typeof showFloatingText === 'function') {
+    setTimeout(() => showFloatingText('🔥 ' + calc.multiplier + 'x จากสตรีค!'), 600);
+  } else if (calc.capped && typeof showFloatingText === 'function') {
+    setTimeout(() => showFloatingText('🌙 ใกล้เต็มวัน — รอพรุ่งนี้นะ'), 600);
   }
   setTimeout(() => {
     const newStage = getPetStageIndex(p.totalStars);
     if (newStage > wasStage) triggerLevelUp(newStage, wasStage);
+    // Phase 3.5 hatch — if this star bump crossed an egg milestone,
+    // play the cinematic right after the level-up settles.
+    if (window.checkHatchMilestones) {
+      const eggType = checkHatchMilestones(p);
+      if (eggType && window.runHatchSequence) {
+        setTimeout(() => runHatchSequence(p, eggType), 400);
+      }
+    }
     renderDashboard();
   }, 500);
 };

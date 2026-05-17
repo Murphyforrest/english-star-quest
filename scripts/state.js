@@ -32,6 +32,24 @@ window.state = {
   version: 3
 };
 
+// Star economy (Phase 3.6) — anti-grinding cap + streak multipliers + milestone bonuses.
+// Tweak these here if the balance turns out wrong; quests-rewards.js and parent.js
+// both read from this single source of truth.
+window.STAR_DAILY_CAP = 30;
+window.STREAK_TIERS = [
+  { days: 30, mult: 2.5, bonus: 'legendaryEgg', label: 'ไฟผจญภัย 30 วัน!'  },
+  { days: 14, mult: 2.0, bonus: 'rainbowEgg',   label: 'ไฟผจญภัย 14 วัน!'  },
+  { days: 7,  mult: 2.0, bonus: 'mysteryBox',   label: 'ไฟผจญภัย 7 วัน!'   },
+  { days: 3,  mult: 1.5, bonus: null,           label: 'ไฟผจญภัย 3 วัน!'   }
+];
+window.getStreakTier = function(streak) {
+  for (const t of STREAK_TIERS) if ((streak || 0) >= t.days) return t;
+  return { days: 0, mult: 1, bonus: null, label: '' };
+};
+window.getTodayKey = function() {
+  return new Date().toISOString().split('T')[0];
+};
+
 // Egg types and their drop tables. Order matters — checkHatchMilestones walks
 // this in order, so the lowest threshold is awarded first when a player crosses
 // multiple at once (rare during normal play, common when a parent dumps stars
@@ -188,6 +206,13 @@ window.migrateState = function(s) {
         star: 0, rainbow: 0, crown: 0, mystic: 0
       };
     }
+    // Phase 3.6 — daily cap tracking + per-streak-run milestone tracking.
+    if (!p.dailyEarned || typeof p.dailyEarned !== 'object') {
+      p.dailyEarned = { date: getTodayKey(), stars: 0 };
+    }
+    if (!p.streakBonusClaimed || typeof p.streakBonusClaimed !== 'object') {
+      p.streakBonusClaimed = {};
+    }
     // Keep p.petId as a deprecated mirror of activePetId so legacy reads don't break.
     if (p.activePetId) p.petId = p.activePetId;
   });
@@ -218,6 +243,32 @@ window.setActivePet = function(player, petId) {
   player.activePetId = petId;
   player.petId = petId; // keep deprecated mirror in sync
   saveState();
+};
+
+// Roll over the daily-earned counter when the calendar date changes. Safe to
+// call any time — no-op when we're still on the same day.
+window.refreshDailyEarned = function(player) {
+  if (!player) return;
+  const today = getTodayKey();
+  if (!player.dailyEarned || player.dailyEarned.date !== today) {
+    player.dailyEarned = { date: today, stars: 0 };
+  }
+};
+
+// Returns how many of the requested base stars the player can actually earn
+// right now, after applying the streak multiplier and clamping by the
+// remaining headroom under STAR_DAILY_CAP. Returns { effective, multiplier,
+// capped } so callers can show "30 / 30 today" feedback.
+//
+// Daily cap only applies to quest completions — Parent Mode "+ดาว" buttons
+// skip this on purpose so parents can always grant bonus stars manually.
+window.calcQuestStars = function(player, baseStars) {
+  refreshDailyEarned(player);
+  const tier = getStreakTier(player.streak);
+  const boosted = Math.round(baseStars * tier.mult);
+  const remaining = Math.max(0, STAR_DAILY_CAP - player.dailyEarned.stars);
+  const effective = Math.min(boosted, remaining);
+  return { effective, multiplier: tier.mult, capped: effective < boosted };
 };
 
 window.loadState = function() {

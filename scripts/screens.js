@@ -33,8 +33,33 @@ window.selectPlayer = function(id) {
 window.renderDashboard = function() {
   const p = getCurrentPlayer();
   if (!p) return;
+  if (window.refreshDailyEarned) refreshDailyEarned(p);
   document.getElementById('starCount').textContent = p.currentStars;
   document.getElementById('streakDays').textContent = p.streak;
+
+  // Phase 3.6 — streak multiplier badge + daily cap progress.
+  // Only render when we have something interesting to show (mult > 1 or some
+  // stars already earned today) — keep the dashboard clean for new players.
+  const econ = document.getElementById('econBadges');
+  if (econ) {
+    const tier = window.getStreakTier ? getStreakTier(p.streak) : { mult: 1 };
+    const earnedToday = (p.dailyEarned && p.dailyEarned.stars) || 0;
+    const cap = window.STAR_DAILY_CAP || 30;
+    let html = '';
+    if (tier.mult > 1) {
+      html += '<span class="econ-badge mult">🔥 x' + tier.mult + ' สตรีค</span>';
+    }
+    if (earnedToday > 0) {
+      const pct = Math.min(100, (earnedToday / cap) * 100);
+      const full = earnedToday >= cap;
+      html += '<span class="econ-badge daily' + (full ? ' full' : '') + '">' +
+                '⭐ ' + earnedToday + '/' + cap + ' วันนี้' +
+                '<span class="econ-bar"><span class="econ-bar-fill" style="width:' + pct + '%"></span></span>' +
+              '</span>';
+    }
+    econ.innerHTML = html;
+  }
+
   const stageIdx = getPetStageIndex(p.totalStars);
   const stage = PET_STAGES[stageIdx];
 
