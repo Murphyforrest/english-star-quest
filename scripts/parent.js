@@ -7,17 +7,19 @@ window.showParentMode = function() {
 };
 
 function renderPlayerHeader(p) {
-  // Try the new pet pool first; fall back to legacy petType svg if rendering it fails.
-  let svg = '';
+  // Pet preview is wrapped in a fixed-size container so that Lottie pets (web
+  // component, ignores inline width/height) also stay 60×60. Don't add inline
+  // width/height to <svg>, the CSS class handles it for both render paths.
+  let pet = '';
   if (window.renderPetByPlayer) {
-    svg = window.renderPetByPlayer(p, '').replace('<svg', '<svg width="50" height="50"');
+    pet = window.renderPetByPlayer(p, 'parent-pet-svg');
   } else if (p.petType && window.renderPetSvg) {
     const stage = getPetStageIndex(p.totalStars);
-    svg = renderPetSvg(p.petType, stage, '').replace('<svg', '<svg width="50" height="50"');
+    pet = renderPetSvg(p.petType, stage, 'parent-pet-svg');
   }
   const profileLabel = (PLAYER_PROFILES[p.profile] || PLAYER_PROFILES.standard).label;
   return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">' +
-    '<div style="width:50px;height:50px;flex-shrink:0">' + svg + '</div>' +
+    '<div class="parent-pet-preview">' + pet + '</div>' +
     '<div style="flex:1;min-width:0">' +
       '<div style="font-weight:700">' + p.name +
         ' <span style="opacity:.6;font-size:12px">— ' + profileLabel + '</span>' +
@@ -115,13 +117,11 @@ window.renderParentMode = function() {
     ).join('');
   }
 
-  // The old "Player" and "Quest" sections are now folded into the per-player panel above.
-  // Keep these containers empty so the page doesn't show duplicate UI.
+  // "+ เพิ่มผู้เล่น" sits at the bottom of the per-child section.
+  // Quests live inside each player panel, so the old #parentQuestList container
+  // has been removed from index.html — don't reference it here.
   document.getElementById('parentPlayerList').innerHTML =
     '<button class="btn-primary" onclick="showAddPlayerModal()" style="width:100%">+ เพิ่มผู้เล่น</button>';
-
-  document.getElementById('parentQuestList').innerHTML =
-    '<div style="text-align:center;opacity:.6;font-size:13px;padding:8px">ภารกิจของแต่ละคนอยู่ในส่วนด้านบน — เพิ่มได้ที่นั่น</div>';
 
   const rl = document.getElementById('parentRewardList');
   rl.innerHTML = state.rewards.map(r =>

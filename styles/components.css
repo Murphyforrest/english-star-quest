@@ -571,6 +571,27 @@
           drop-shadow(0 0 30px rgba(125, 200, 255, 0.3));
 }
 
+/* Pet thumbnail in Parent Mode rows.
+   Wrapper enforces 60×60 so Lottie pets (web component that ignores inline
+   width/height attributes) can't overflow into the star/quest controls. */
+.parent-pet-preview {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.parent-pet-preview > svg,
+.parent-pet-preview .parent-pet-svg,
+.parent-pet-preview .lottie-wrap,
+.parent-pet-preview dotlottie-player {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .pet-pick-name {
   font-size: 13px;
   font-weight: 600;
