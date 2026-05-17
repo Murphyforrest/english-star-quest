@@ -11,24 +11,49 @@
 //
 // Legendary (Rainbow Dragon) gets an extended sequence (~9s) with extra effects.
 
-window.runHatchSequence = function(player) {
+// runHatchSequence(player, eggType?)
+//   eggType (optional): 'starter' | 'star' | 'rainbow' | 'crown' | 'mystic'.
+//                       When provided, roll a pet using that egg's drop table
+//                       and record it in player.pets / increment player.hatched.
+//                       When omitted (legacy callers / dev test buttons), reveal
+//                       the player's existing activePet — no collection update.
+window.runHatchSequence = function(player, eggType) {
   const pc = document.getElementById('petContainer');
   const petDisplay = document.getElementById('petDisplay');
   if (!pc || !petDisplay) return;
 
-  // Safety net: if a legacy player (or anyone) reaches hatch without a rolled pet,
-  // roll one now. The reveal still surprises the child.
-  if (!player.petId && window.rollRandomPet) {
+  // Multi-egg path: roll a fresh pet with the right drop table and stamp it
+  // into the collection. The reveal still surprises the child.
+  if (eggType && window.rollPetForEggType) {
+    const rolled = rollPetForEggType(eggType);
+    if (rolled) {
+      if (!Array.isArray(player.pets)) player.pets = [];
+      player.pets.push({ petId: rolled.id, eggType: eggType, hatchedAt: Date.now() });
+      player.activePetId = rolled.id;
+      player.petId = rolled.id;
+      player.hatched = player.hatched || {};
+      player.hatched[eggType] = (player.hatched[eggType] || 0) + 1;
+      saveState();
+    }
+  } else if (!player.petId && window.rollRandomPet) {
+    // Safety net for legacy callers — should not fire during normal play.
     const fresh = rollRandomPet();
     if (fresh) {
       player.petId = fresh.id;
+      player.activePetId = fresh.id;
+      if (!Array.isArray(player.pets)) player.pets = [];
+      if (!player.pets.some(e => e.petId === fresh.id)) {
+        player.pets.push({ petId: fresh.id, eggType: 'starter', hatchedAt: Date.now() });
+      }
       saveState();
     }
   }
 
-  // The pet was rolled at player creation; reveal happens here.
-  const pet = window.getPetById && player.petId ? window.getPetById(player.petId) : null;
+  // Reveal: render the active pet.
+  const activeId = window.getActivePetId ? getActivePetId(player) : player.petId;
+  const pet = window.getPetById && activeId ? window.getPetById(activeId) : null;
   const isLegendary = pet && pet.rarity === 'legendary';
+  const eggInfo = eggType ? (window.EGG_TYPES || {})[eggType] : null;
 
   // Resume audio context (may be needed if first sound of the session)
   if (window.Sound) Sound.resume();
@@ -105,13 +130,12 @@ window.runHatchSequence = function(player) {
   const modalDelay = revealDelay + 1500;
   setTimeout(() => {
     pc.classList.remove('h-reveal');
-    showHatchRevealModal(player, pet);
+    showHatchRevealModal(player, pet, eggInfo);
   }, modalDelay);
 };
 
-function showHatchRevealModal(player, pet) {
+function showHatchRevealModal(player, pet, eggInfo) {
   if (!pet) {
-    // Fallback if somehow no pet rolled — should not happen.
     showModal({
       iconText: '🎉',
       title: 'ฟักไข่สำเร็จ!',
@@ -122,6 +146,14 @@ function showHatchRevealModal(player, pet) {
   }
   const rarity = getRarity(pet.rarity);
   const isLegendary = pet.rarity === 'legendary';
+
+  // Tell the kid which egg they hatched (Crown / Rainbow / etc.) so the
+  // milestones feel like distinct achievements, not all "egg #2".
+  const eggBadge = eggInfo
+    ? '<div style="display:inline-block;padding:4px 12px;border-radius:50px;font-size:11px;letter-spacing:1px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.18);margin-bottom:10px">' +
+        eggInfo.emoji + ' ' + eggInfo.nameTh +
+      '</div><br>'
+    : '';
 
   const rarityBadge = isLegendary
     ? '<div style="display:inline-block;padding:8px 20px;border-radius:50px;font-weight:800;font-size:14px;letter-spacing:2px;background:linear-gradient(90deg,#ff66c4,#c490ff,#7dc8ff,#c490ff,#ff66c4);background-size:200% 100%;animation:gs 2s linear infinite;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4);margin-bottom:14px">🌈 LEGENDARY 🌈</div>'
@@ -135,12 +167,21 @@ function showHatchRevealModal(player, pet) {
     ? '<strong style="color:#ff66c4">ไม่อยากเชื่อเลย!</strong><br>' + pet.nameEn + ' / ' + pet.nameTh + '<br>หาเจอยากมาก ๆ (5%)<br>ลูกสุดยอด! ✨'
     : pet.nameEn + ' / ' + pet.nameTh + '<br>ออกมาจากไข่แล้ว 💖<br>เก็บดาวต่อไป จะได้โตขึ้นเรื่อยๆ';
 
+  // Count the collection so the kid sees they're building up a roster.
+  const owned = (player.pets || []).length;
+  const total = (window.PETS_POOL || []).length;
+  const collectionLine = (owned > 1)
+    ? '<div style="margin-top:10px;font-size:12px;opacity:.7">📖 คอลเลกชั่น: ' + owned + ' / ' + total + ' ตัว</div>'
+    : '';
+
   const html =
+    eggBadge +
     rarityBadge +
     '<div style="margin:0 auto 12px;width:140px;height:140px">' + renderPetById(pet.id, 'modal-icon-svg') + '</div>' +
     '<h3 class="modal-title">' + titleText + '</h3>' +
     '<p class="modal-text">' + subtext + '</p>' +
-    '<button class="btn-primary" id="hatchOk" style="width:100%;margin-bottom:8px">' +
+    collectionLine +
+    '<button class="btn-primary" id="hatchOk" style="width:100%;margin-bottom:8px;margin-top:12px">' +
       (isLegendary ? 'น่าทึ่งมาก! 🌈' : 'น่ารักมาก! 💖') +
     '</button>';
 
@@ -149,7 +190,6 @@ function showHatchRevealModal(player, pet) {
   document.getElementById('modal').classList.add('active');
 
   if (isLegendary) {
-    // One more confetti burst for the legendary moment
     setTimeout(() => launchConfetti(), 200);
     setTimeout(() => launchConfetti(), 700);
   }

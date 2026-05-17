@@ -76,16 +76,28 @@ function renderHatchTestButtons(p) {
   '</div>';
 }
 
-window.testHatchPet = function(playerId, forcePetId) {
+// Dev hatch-test: replay the hatch animation without grinding. forcePetId
+// pins the pet (handy for showing off a specific creature); leave null to roll
+// from the pool. eggType (optional) flows through to the reveal modal so the
+// egg badge matches what we're testing.
+window.testHatchPet = function(playerId, forcePetId, eggType) {
   const p = state.players.find(x => x.id === playerId);
   if (!p) return;
 
-  // Force pet (or roll random if null)
-  if (forcePetId) {
-    p.petId = forcePetId;
-  } else if (window.rollRandomPet) {
+  // Force pet (or roll random if null) and stamp it into the collection so the
+  // post-hatch screen renders correctly even after the cinematic.
+  let petId = forcePetId;
+  if (!petId && window.rollRandomPet) {
     const rolled = rollRandomPet();
-    if (rolled) p.petId = rolled.id;
+    if (rolled) petId = rolled.id;
+  }
+  if (petId) {
+    if (!Array.isArray(p.pets)) p.pets = [];
+    if (!p.pets.some(e => e.petId === petId)) {
+      p.pets.push({ petId: petId, eggType: eggType || 'starter', hatchedAt: Date.now() });
+    }
+    p.activePetId = petId;
+    p.petId = petId;
   }
   // Reset to egg state so the hatch sequence runs cleanly from the beginning
   p.totalStars = 0;
@@ -98,8 +110,8 @@ window.testHatchPet = function(playerId, forcePetId) {
   showScreen('dashboard');
   renderDashboard();
 
-  // Give the dashboard a moment to render the egg, then trigger the cinematic sequence.
-  setTimeout(() => runHatchSequence(p), 700);
+  // Pass eggType into the sequence so the reveal modal shows the right egg badge.
+  setTimeout(() => runHatchSequence(p, eggType || null), 700);
 };
 
 window.renderParentMode = function() {
@@ -171,6 +183,20 @@ window.adjustStars = function(pid, amt) {
   if (newStage > wasStage) {
     launchConfetti();
     showFloatingText('🎉 ' + p.name + ' เลเวลอัพ!');
+  }
+  // Phase 3.5: when a star bump crosses an egg milestone, queue the hatch.
+  // Only triggers for positive adjustments — minus stars never claw back a pet.
+  if (amt > 0 && window.checkHatchMilestones) {
+    const eggType = checkHatchMilestones(p);
+    if (eggType && window.runHatchSequence) {
+      // Switch into the child's dashboard so the cinematic plays where they'll
+      // see it, not stuck behind the Parent Mode screen.
+      state.currentPlayer = p.id;
+      saveState();
+      showScreen('dashboard');
+      if (typeof renderDashboard === 'function') renderDashboard();
+      setTimeout(() => runHatchSequence(p, eggType), 500);
+    }
   }
 };
 

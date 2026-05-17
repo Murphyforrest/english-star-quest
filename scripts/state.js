@@ -1,25 +1,70 @@
 // Data layer: state shape, persistence, defaults, helpers.
 // Storage key 'starQuest_v1' is preserved from the original — do not rename or kids lose progress.
 //
-// Schema:
+// Schema (v3):
 //   state.players[i] = {
-//     id, name, petType, petName,
+//     id, name, petName, profile,
 //     totalStars, currentStars, streak, lastActivity,
 //     completedQuests, claimedRewards,
-//     quests: [...],           // per-player quest list (independent per child)
-//     profile: 'standard' | 'gentle'  // drives default quests + future AI tone
+//     quests: [...],
+//
+//     // v3 — multi-pet collection (Phase 3.5)
+//     pets: [{ petId, eggType, hatchedAt }, ...],
+//     activePetId: 'snow-fox',                 // which pet shows on dashboard
+//     hatched: { starter:0|1, star:0|1, rainbow:0|1, crown:0|1, mystic:N },
+//
+//     // Deprecated mirror — kept so old screens that read player.petId still work.
+//     // Always equals activePetId after migration.
+//     petId: 'snow-fox'
 //   }
 //   state.rewards = [...]      // shared across players (the shop)
 //   state.currentPlayer        // id of the player currently logged in
-//   state.version              // schema version (2 = per-player quests)
+//   state.version              // schema version (3 = multi-pet collection)
 //
-// Migration: v1 (shared state.quests) → v2 (state.players[i].quests). See migrateState().
+// Migration:
+//   v1 → v2: shared state.quests → per-player quests.
+//   v2 → v3: single petId → pets[] array + activePetId + hatched milestones.
 
 window.state = {
   players: [],
   rewards: [],
   currentPlayer: null,
-  version: 2
+  version: 3
+};
+
+// Egg types and their drop tables. Order matters — checkHatchMilestones walks
+// this in order, so the lowest threshold is awarded first when a player crosses
+// multiple at once (rare during normal play, common when a parent dumps stars
+// via "ระบุเอง" in Parent Mode).
+window.EGG_TYPES = {
+  starter: {
+    nameTh: 'ไข่เริ่มต้น', emoji: '🥚', threshold: 15,
+    tint: '#7dc8ff',
+    drops: { common: 95, rare: 5 }
+  },
+  star: {
+    nameTh: 'ไข่ดาว', emoji: '✨', threshold: 50,
+    tint: '#ffd700',
+    drops: { common: 60, rare: 35, superRare: 5 }
+  },
+  rainbow: {
+    nameTh: 'ไข่สายรุ้ง', emoji: '🌈', threshold: 120,
+    tint: 'rainbow',
+    drops: { rare: 50, superRare: 40, legendary: 10 }
+  },
+  crown: {
+    nameTh: 'ไข่มงกุฎ', emoji: '👑', threshold: 250,
+    tint: '#c490ff',
+    drops: { superRare: 50, legendary: 50 }
+  },
+  // Endless replay loop: first appears at 500 stars, then every +250 after.
+  mystic: {
+    nameTh: 'ไข่ลึกลับ', emoji: '🐉', threshold: 500,
+    tint: '#9b6dff',
+    drops: { common: 30, rare: 30, superRare: 25, legendary: 15 },
+    repeating: true,
+    repeatInterval: 250
+  }
 };
 
 window.PLAYER_PROFILES = {
@@ -96,6 +141,7 @@ window.saveState = function() {
 
 // Migrate older saves to the current schema. Always safe to call.
 //   v1 → v2: copy top-level state.quests into each player.quests (or use defaults).
+//   v2 → v3: single player.petId → pets[] array + activePetId + hatched milestones.
 window.migrateState = function(s) {
   if (!s || typeof s !== 'object') return s;
   if (!Array.isArray(s.players))  s.players  = [];
@@ -118,12 +164,60 @@ window.migrateState = function(s) {
     if (typeof p.totalStars   !== 'number') p.totalStars   = 0;
     if (typeof p.currentStars !== 'number') p.currentStars = 0;
     if (typeof p.streak       !== 'number') p.streak       = 0;
+
+    // v2 → v3: turn the single saved pet into a one-entry collection.
+    // We don't try to infer which higher-tier eggs they "should have" hatched,
+    // we just give them credit for the starter milestone if they already had a
+    // pet — they can earn the rest the normal way going forward.
+    if (!Array.isArray(p.pets)) {
+      if (p.petId) {
+        p.pets = [{ petId: p.petId, eggType: 'starter', hatchedAt: Date.now() }];
+        p.activePetId = p.petId;
+      } else {
+        p.pets = [];
+        p.activePetId = null;
+      }
+    } else if (p.pets.length && !p.activePetId) {
+      p.activePetId = p.pets[0].petId;
+    }
+    if (!p.hatched || typeof p.hatched !== 'object') {
+      // If they already crossed a threshold, mark starter as claimed so they
+      // don't get a duplicate hatch animation for stars they already earned.
+      p.hatched = {
+        starter: p.totalStars >= 15 ? 1 : 0,
+        star: 0, rainbow: 0, crown: 0, mystic: 0
+      };
+    }
+    // Keep p.petId as a deprecated mirror of activePetId so legacy reads don't break.
+    if (p.activePetId) p.petId = p.activePetId;
   });
 
   // Drop the legacy global quests field after migration.
   delete s.quests;
-  s.version = 2;
+  s.version = 3;
   return s;
+};
+
+// Active pet helpers — every screen that used to read player.petId should
+// switch to these so the dashboard reflects whichever pet the child has picked.
+window.getActivePetEntry = function(player) {
+  if (!player || !Array.isArray(player.pets) || !player.pets.length) return null;
+  if (player.activePetId) {
+    const found = player.pets.find(e => e.petId === player.activePetId);
+    if (found) return found;
+  }
+  return player.pets[0];
+};
+window.getActivePetId = function(player) {
+  const e = getActivePetEntry(player);
+  return e ? e.petId : (player ? player.petId : null);
+};
+window.setActivePet = function(player, petId) {
+  if (!player || !petId) return;
+  if (!Array.isArray(player.pets) || !player.pets.some(e => e.petId === petId)) return;
+  player.activePetId = petId;
+  player.petId = petId; // keep deprecated mirror in sync
+  saveState();
 };
 
 window.loadState = function() {

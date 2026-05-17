@@ -78,13 +78,12 @@ window.confirmAddPlayer = function() {
     document.getElementById('newPlayerName').style.borderColor = '#ff3366';
     return;
   }
-  // Roll the pet NOW (at creation). Child won't see it until hatch reveals it at 15 stars.
-  const rolled = (window.rollRandomPet && rollRandomPet()) || null;
-
+  // v3 schema: pets[] starts empty. The Starter Egg (15 stars) is the first
+  // hatch — checkHatchMilestones() rolls from the starter drop table when the
+  // child crosses the threshold. No pre-roll here, no surprise spoiler.
   state.players.push({
     id: 'p' + Date.now(),
     name: name,
-    petId: rolled ? rolled.id : null,
     petName: 'น้อง' + name,
     profile: pickedProfile,
     quests: questsForProfile(pickedProfile),
@@ -93,7 +92,11 @@ window.confirmAddPlayer = function() {
     streak: 0,
     lastActivity: null,
     completedQuests: [],
-    claimedRewards: []
+    claimedRewards: [],
+    pets: [],
+    activePetId: null,
+    hatched: { starter: 0, star: 0, rainbow: 0, crown: 0, mystic: 0 },
+    petId: null
   });
   saveState();
   closeModal();

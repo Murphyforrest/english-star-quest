@@ -346,30 +346,73 @@ window.getRarity = function(key) {
   return RARITY[key] || RARITY.common;
 };
 
+// Pick a tier key by weight map { tierName: weight }. Returns the chosen tier
+// or null if every weight is zero. Shared by rollRandomPet and rollPetForEggType.
+function _pickTierByWeights(weights) {
+  const total = Object.values(weights).reduce((s, w) => s + (w || 0), 0);
+  if (total <= 0) return null;
+  let r = Math.random() * total;
+  for (const [tier, w] of Object.entries(weights)) {
+    r -= (w || 0);
+    if (r <= 0) return tier;
+  }
+  return Object.keys(weights)[0];
+}
+
+// Pick a pet from candidates list with a tiered fallback so we never return null
+// as long as PETS_POOL has anything in it. Used by both roll functions.
+function _pickFromCandidates(candidates) {
+  if (candidates.length) return candidates[Math.floor(Math.random() * candidates.length)];
+  const commons = PETS_POOL.filter(p => p.rarity === 'common');
+  if (commons.length) return commons[Math.floor(Math.random() * commons.length)];
+  if (PETS_POOL.length) return PETS_POOL[Math.floor(Math.random() * PETS_POOL.length)];
+  return null;
+}
+
 // Weighted random pet from the pool. Picks a rarity tier first (by weight),
 // then a uniform random pet within that tier. This gives clean, predictable odds.
 window.rollRandomPet = function() {
   if (!PETS_POOL.length) return null;
-  const tierKeys = Object.keys(RARITY);
-  const totalWeight = tierKeys.reduce((s, k) => s + RARITY[k].weight, 0);
-  let r = Math.random() * totalWeight;
-  let chosenTier = tierKeys[0];
-  for (const k of tierKeys) {
-    r -= RARITY[k].weight;
-    if (r <= 0) { chosenTier = k; break; }
+  const weights = {};
+  Object.keys(RARITY).forEach(k => { weights[k] = RARITY[k].weight; });
+  const chosenTier = _pickTierByWeights(weights) || 'common';
+  return _pickFromCandidates(PETS_POOL.filter(p => p.rarity === chosenTier));
+};
+
+// Multi-egg roll: use the drop table on the specific egg type rather than the
+// global RARITY weights, so a Crown Egg always lands a Super Rare or Legendary
+// even though commons normally dominate.
+window.rollPetForEggType = function(eggType) {
+  if (!PETS_POOL.length) return null;
+  const egg = (window.EGG_TYPES || {})[eggType];
+  if (!egg || !egg.drops) return rollRandomPet();
+  const chosenTier = _pickTierByWeights(egg.drops) || 'common';
+  return _pickFromCandidates(PETS_POOL.filter(p => p.rarity === chosenTier));
+};
+
+// Walks the egg types in threshold order and returns the FIRST egg this player
+// has earned but not yet claimed. Repeating eggs (mystic) compare an expected
+// count derived from current totalStars vs the count already hatched.
+// Returns null when nothing is pending.
+window.checkHatchMilestones = function(player) {
+  if (!player || !window.EGG_TYPES) return null;
+  player.hatched = player.hatched || {};
+  // Sort by threshold so lower milestones get hatched first when a player
+  // crosses several in one star bump.
+  const entries = Object.entries(window.EGG_TYPES).sort(
+    (a, b) => a[1].threshold - b[1].threshold
+  );
+  for (const [type, egg] of entries) {
+    if (egg.repeating) {
+      if (player.totalStars < egg.threshold) continue;
+      const above = player.totalStars - egg.threshold;
+      const expected = Math.floor(above / (egg.repeatInterval || 250)) + 1;
+      if ((player.hatched[type] || 0) < expected) return type;
+    } else {
+      if (player.totalStars >= egg.threshold && !player.hatched[type]) return type;
+    }
   }
-  const candidates = PETS_POOL.filter(p => p.rarity === chosenTier);
-  if (candidates.length) {
-    return candidates[Math.floor(Math.random() * candidates.length)];
-  }
-  // Tier has no pets defined — fall back to commons.
-  const commons = PETS_POOL.filter(p => p.rarity === 'common');
-  if (commons.length) {
-    return commons[Math.floor(Math.random() * commons.length)];
-  }
-  // Last-resort fallback so a dev removing tiers can never produce a null pet
-  // (a null pet would render the post-hatch screen as a plain egg again).
-  return PETS_POOL[Math.floor(Math.random() * PETS_POOL.length)];
+  return null;
 };
 
 // Uniquify gradient/filter IDs so multiple instances of the same SVG on one page
@@ -405,27 +448,37 @@ window.renderPetById = function(id, className) {
 };
 
 // Player-aware render: stage 0 always shows the mystery egg (no spoilers).
-// Stage 1+ reveals the rolled pet. Falls back to legacy petType rendering
-// for any old player data imported from before Phase 2.
+// Stage 1+ shows the active pet from the collection. Falls back to legacy
+// petType rendering for any imported player data from before Phase 2.
 //
-// Auto re-roll: if a player has a saved petId that no longer exists in the pool
-// (e.g. after we removed pets in Phase 3.1), roll a new one and persist it.
-// Without this, those players would see the post-hatch screen render as a plain
-// egg forever.
+// Auto re-roll: if the active pet no longer exists in the pool (e.g. removed
+// in Phase 3.1), roll a fresh one and persist. Without this, the post-hatch
+// screen would render as a plain egg forever for stranded saves.
 window.renderPetByPlayer = function(player, className) {
   className = className || 'pet-svg';
   if (!player) return '';
   const stage = getPetStageIndex(player.totalStars);
   if (stage === 0) return renderEgg(className);
-  if (player.petId) {
-    if (!getPetById(player.petId) && window.rollRandomPet) {
+
+  const activeId = (window.getActivePetId ? getActivePetId(player) : player.petId);
+  if (activeId) {
+    if (!getPetById(activeId) && window.rollRandomPet) {
       const fresh = rollRandomPet();
       if (fresh) {
+        // Heal the active entry in the collection too, not just the mirror.
+        if (Array.isArray(player.pets) && player.pets.length) {
+          const entry = player.pets.find(e => e.petId === activeId) || player.pets[0];
+          entry.petId = fresh.id;
+          player.activePetId = fresh.id;
+        } else {
+          player.pets = [{ petId: fresh.id, eggType: 'starter', hatchedAt: Date.now() }];
+          player.activePetId = fresh.id;
+        }
         player.petId = fresh.id;
         if (typeof saveState === 'function') saveState();
       }
     }
-    return renderPetById(player.petId, className);
+    return renderPetById(player.activePetId || activeId, className);
   }
   if (player.petType && window.renderPetSvg) {
     return window.renderPetSvg(player.petType, stage, className);
