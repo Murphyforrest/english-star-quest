@@ -164,9 +164,12 @@
 
     <div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
       <button class="btn-secondary" onclick="tutorTestSound()" style="font-size:13px;padding:8px 18px;background:rgba(125,200,255,.15);border-color:rgba(125,200,255,.4);color:#7dc8ff">🔊 ทดสอบเสียง</button>
-      <button id="voiceToggleBtn" class="btn-secondary" onclick="toggleVoice()" style="font-size:13px;padding:8px 18px;background:rgba(255,215,0,.15);border-color:rgba(255,215,0,.4);color:#ffd700">🎙 เสียง: OpenAI (เหมือนคนจริง)</button>
+      <button id="voiceToggleBtn" class="btn-secondary" onclick="toggleVoice()" style="font-size:13px;padding:8px 18px;background:rgba(255,215,0,.15);border-color:rgba(255,215,0,.4);color:#ffd700">🎙 Nova (หญิงสาวอบอุ่น)</button>
       <button class="btn-secondary" onclick="tutorEnd()" style="font-size:13px;padding:8px 18px">จบเซสชั่น</button>
     </div>
+
+    <!-- Floating STOP button — appears while AI is speaking, tap to silence -->
+    <button id="tutorStopSpeakBtn" onclick="if(window.AI)AI.stopSpeak()" style="display:none;position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#ff3366,#ff66c4);border:3px solid #fff;color:#fff;font-size:24px;cursor:pointer;z-index:1100;box-shadow:0 6px 20px rgba(255,51,102,.5)" aria-label="Stop speaking">⏹️</button>
   </div>
 
   <!-- Modal overlay -->

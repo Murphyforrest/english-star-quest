@@ -2,7 +2,7 @@
 // without internet. AI calls always go through the network (no caching).
 
 // Bump this when shipping JS/CSS changes so stale caches are evicted on next load.
-const CACHE_NAME = 'esq-shell-v25-highlight-sync-audio-start';
+const CACHE_NAME = 'esq-shell-v28-set-tracked-cancel-all';
 const SHELL = [
   './',
   './index.html',

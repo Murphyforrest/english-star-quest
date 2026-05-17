@@ -608,22 +608,69 @@ window.tutorTestSound = function () {
     .then(() => addTutorSystemMsg('✅ พูดจบแล้ว — ได้ยินไหม?'));
 };
 
-// Toggle between Siri (default, always loud) and OpenAI nova (premium, quieter after mic use)
-window.toggleVoice = function() {
-  const current = window.AI_VOICE || 'siri';
-  window.AI_VOICE = current === 'siri' ? 'openai' : 'siri';
-  try { localStorage.setItem('voicePref', window.AI_VOICE); } catch (e) {}
+// Voice picker — cycle through 6 OpenAI voices + Siri. Tap to try next, kid hears sample.
+const VOICE_OPTIONS = [
+  { id: 'openai:nova',    label: 'Nova',    th: 'หญิงสาวอบอุ่น (ตอนนี้)' },
+  { id: 'openai:shimmer', label: 'Shimmer', th: 'หญิงนุ่มใส' },
+  { id: 'openai:alloy',   label: 'Alloy',   th: 'กลาง ๆ' },
+  { id: 'openai:echo',    label: 'Echo',    th: 'ชายอบอุ่น' },
+  { id: 'openai:fable',   label: 'Fable',   th: 'ชายอังกฤษ' },
+  { id: 'openai:onyx',    label: 'Onyx',    th: 'ชายลึก' },
+  { id: 'siri',           label: 'Siri',    th: 'หุ่นยนต์ ดังเสมอ' }
+];
+
+function applyVoiceId(id) {
+  const opt = VOICE_OPTIONS.find(v => v.id === id) || VOICE_OPTIONS[0];
+  window.AI_VOICE_FULL = opt.id;
+  if (opt.id === 'siri') {
+    window.AI_VOICE = 'siri';
+  } else {
+    window.AI_VOICE = 'openai';
+    window.AI_OPENAI_VOICE = opt.id.split(':')[1];
+  }
+  try { localStorage.setItem('voicePref', opt.id); } catch (e) {}
   const btn = document.getElementById('voiceToggleBtn');
-  if (btn) btn.textContent = '🎙 เสียง: ' + (window.AI_VOICE === 'siri' ? 'Siri (ดัง)' : 'OpenAI (เหมือนคนจริง)');
-  addTutorSystemMsg('🎙 สลับเสียงเป็น: ' + (window.AI_VOICE === 'siri' ? 'Siri — ดัง คงที่ ไม่เปลี่ยนเสียงตอน mic' : 'OpenAI nova — เหมือนคนจริง แต่อาจเบาหลังใช้ไมค์'));
-  AI.speak('Hi! This is my voice now.', { lang: 'en-US' });
+  if (btn) btn.textContent = '🎙 ' + opt.label + ' (' + opt.th + ')';
+  return opt;
+}
+
+window.toggleVoice = function() {
+  const current = window.AI_VOICE_FULL || 'openai:nova';
+  const idx = VOICE_OPTIONS.findIndex(v => v.id === current);
+  const next = VOICE_OPTIONS[(idx + 1) % VOICE_OPTIONS.length];
+  const opt = applyVoiceId(next.id);
+  addTutorSystemMsg('🎙 เสียงใหม่: ' + opt.label + ' — ' + opt.th);
+  AI.speak('Hi! I am ' + opt.label + '. Do you like my voice?', { lang: 'en-US' });
 };
 
-// Reflect saved preference on button text at load
+// Restore saved preference on load + update button label
+try {
+  const saved = localStorage.getItem('voicePref');
+  if (saved) applyVoiceId(saved);
+  else applyVoiceId('openai:nova');
+} catch (e) {
+  applyVoiceId('openai:nova');
+}
 setTimeout(() => {
-  const btn = document.getElementById('voiceToggleBtn');
-  if (btn) btn.textContent = '🎙 เสียง: ' + (window.AI_VOICE === 'siri' ? 'Siri (ดัง)' : 'OpenAI (เหมือนคนจริง)');
+  const id = window.AI_VOICE_FULL || 'openai:nova';
+  applyVoiceId(id);
 }, 100);
+
+// Floating STOP button — show while AI is speaking, hide otherwise.
+// Polls AI.isSpeaking() because TTS state can change mid-playback (start/stop/abort).
+setInterval(() => {
+  const btn = document.getElementById('tutorStopSpeakBtn');
+  if (!btn) return;
+  // Only show in tutor screen
+  const tutorActive = document.getElementById('tutorScreen') && document.getElementById('tutorScreen').classList.contains('active');
+  const speaking = window.AI && AI.isSpeaking && AI.isSpeaking();
+  btn.style.display = (tutorActive && speaking) ? 'block' : 'none';
+}, 250);
+
+window.addEventListener('ai-speak-stopped', () => {
+  const btn = document.getElementById('tutorStopSpeakBtn');
+  if (btn) btn.style.display = 'none';
+});
 
 // v15: Default OpenAI nova (premium voice)
 window.AI_VOICE = window.AI_VOICE || 'openai';

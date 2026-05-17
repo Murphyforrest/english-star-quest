@@ -49,10 +49,16 @@ window.AI = (function() {
   // Fetches mp3 from the Worker /tts route and plays via <audio>. Falls back to
   // browser SpeechSynthesis if Worker is offline or TTS isn't configured.
 
-  let _currentAudio = null;       // HTML5 fallback handle
-  let _currentSource = null;      // Web Audio source handle
-  let _audioContext = null;       // shared Web Audio context (kept alive after unlock)
+  // Track ALL concurrent activity — single-var tracking lost references when
+  // multiple speak() calls overlapped, causing zombie audio. Sets fix this.
+  const _activeSources = new Set();    // Web Audio AudioBufferSourceNode currently playing
+  const _activeAudios  = new Set();    // HTML5 Audio elements currently playing
+  const _pendingAborts = new Set();    // AbortControllers for in-flight TTS fetches
+  let _audioContext = null;
   let _audioUnlocked = false;
+  // Legacy aliases for old code paths
+  let _currentAudio = null;
+  let _currentSource = null;
 
   // iOS Safari unlock — MUST be called inside a user gesture (button click).
   // Creates a persistent AudioContext that bypasses HTML5 Audio's quiet "ambient"
@@ -94,23 +100,39 @@ window.AI = (function() {
 
   async function speakOpenAI(text, opts) {
     opts = opts || {};
-    const res = await fetch(endpoint() + '/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: text,
-        voice: opts.voice || 'nova',
-        speed: opts.speed || 1.0,
-        model: opts.model || 'tts-1'
-      })
-    });
+
+    // STOP every previous playback + fetch before starting new one — no overlap
+    stopSpeak();
+
+    const aborter = new AbortController();
+    _pendingAborts.add(aborter);
+
+    let res;
+    try {
+      res = await fetch(endpoint() + '/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: aborter.signal,
+        body: JSON.stringify({
+          text: text,
+          voice: opts.voice || window.AI_OPENAI_VOICE || 'nova',
+          speed: opts.speed || 1.0,
+          model: opts.model || 'tts-1'
+        })
+      });
+    } catch (e) {
+      _pendingAborts.delete(aborter);
+      if (e.name === 'AbortError') return;
+      throw e;
+    }
+    _pendingAborts.delete(aborter);
     if (!res.ok) throw new Error('tts failed: ' + res.status);
+    if (aborter.signal.aborted) return;
     const arrayBuffer = await res.arrayBuffer();
+    if (aborter.signal.aborted) return;
 
     const ctx = _ensureAudioContext();
     if (!ctx) throw new Error('no audio context');
-
-    if (_currentSource) { try { _currentSource.stop(); } catch (e) {} _currentSource = null; }
 
     return new Promise((resolve) => {
       const onDecoded = (audioBuffer) => {
@@ -135,11 +157,17 @@ window.AI = (function() {
           src.connect(gain);
         }
         gain.connect(ctx.destination);
+        // If aborted between decode and start, don't actually play
+        if (aborter.signal.aborted) { resolve(); return; }
         src.start(0);
+        _activeSources.add(src);
         _currentSource = src;
-        // Fire onStart now that audio is actually playing — lets caller sync UI
         if (opts.onStart) try { opts.onStart(audioBuffer.duration); } catch (e) {}
-        src.onended = () => { _currentSource = null; resolve(); };
+        src.onended = () => {
+          _activeSources.delete(src);
+          if (_currentSource === src) _currentSource = null;
+          resolve();
+        };
       };
       const onErr = () => resolve();
       try {
@@ -225,15 +253,31 @@ window.AI = (function() {
   }
 
   function stopSpeak() {
-    if (_currentSource) {
-      try { _currentSource.stop(); _currentSource = null; } catch (e) {}
-    }
-    if (_currentAudio) {
-      try { _currentAudio.pause(); _currentAudio = null; } catch (e) {}
-    }
+    // Abort EVERY in-flight fetch
+    _pendingAborts.forEach(a => { try { a.abort(); } catch (e) {} });
+    _pendingAborts.clear();
+    // Stop EVERY active Web Audio source
+    _activeSources.forEach(s => { try { s.stop(); } catch (e) {} });
+    _activeSources.clear();
+    _currentSource = null;
+    // Pause EVERY active HTML5 audio element
+    _activeAudios.forEach(a => { try { a.pause(); a.src = ''; } catch (e) {} });
+    _activeAudios.clear();
+    _currentAudio = null;
+    // Cancel SpeechSynthesis (Siri path)
     if ('speechSynthesis' in window) {
       try { speechSynthesis.cancel(); } catch (e) {}
     }
+    try { window.dispatchEvent(new CustomEvent('ai-speak-stopped')); } catch (e) {}
+  }
+
+  function isSpeaking() {
+    if (_activeSources.size > 0) return true;
+    if (_activeAudios.size > 0) {
+      for (const a of _activeAudios) if (!a.paused) return true;
+    }
+    if ('speechSynthesis' in window && speechSynthesis.speaking) return true;
+    return false;
   }
 
   // Diagnostic — returns info about available voices (useful for debugging iOS).
@@ -418,5 +462,5 @@ window.AI = (function() {
     stopRecording();
   }
 
-  return { chat, health, speak, listen, endpoint, stopSpeak, stopListen, voiceInfo, unlockAudio };
+  return { chat, health, speak, listen, endpoint, stopSpeak, stopListen, voiceInfo, unlockAudio, isSpeaking };
 })();
