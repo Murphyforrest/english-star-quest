@@ -66,9 +66,9 @@ function renderHatchTestButtons(p) {
   return '<div style="margin-top:14px;padding:12px;background:rgba(155,109,255,.08);border:1px dashed rgba(155,109,255,.25);border-radius:14px">' +
     '<div style="font-size:11px;opacity:.55;margin-bottom:8px;letter-spacing:.5px">🧪 ปุ่มลับ — ทดสอบแอนิเมชั่นฟัก (รีเซ็ตดาวของลูกคนนี้)</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
-      '<button class="quick-add-btn" style="background:linear-gradient(90deg,rgba(255,102,196,.3),rgba(196,144,255,.3),rgba(125,200,255,.3));border-color:rgba(196,144,255,.5);font-size:13px" onclick="testHatchPet(\'' + p.id + '\',\'rainbow-axolotl\')">🌈 Axolotl (Lottie)</button>' +
-      '<button class="quick-add-btn" style="background:linear-gradient(90deg,rgba(196,144,255,.3),rgba(255,102,196,.3));border-color:rgba(255,102,196,.5);font-size:13px" onclick="testHatchPet(\'' + p.id + '\',\'rainbow-dragon\')">🐉 Dragon (SVG)</button>' +
-      '<button class="quick-add-btn" style="background:rgba(155,109,255,.2);border-color:rgba(155,109,255,.4);font-size:13px" onclick="testHatchPet(\'' + p.id + '\',\'fairy-deer\')">💜 Super Rare</button>' +
+      '<button class="quick-add-btn" style="background:linear-gradient(90deg,rgba(196,144,255,.3),rgba(255,102,196,.3));border-color:rgba(255,102,196,.5);font-size:13px" onclick="testHatchPet(\'' + p.id + '\',\'rainbow-dragon\')">🐉 Dragon (LGD)</button>' +
+      '<button class="quick-add-btn" style="background:rgba(155,109,255,.2);border-color:rgba(155,109,255,.4);font-size:13px" onclick="testHatchPet(\'' + p.id + '\',\'shadow-tiger\')">🐯 Shadow Tiger (SR)</button>' +
+      '<button class="quick-add-btn" style="background:rgba(212,160,23,.18);border-color:rgba(212,160,23,.4);font-size:13px" onclick="testHatchPet(\'' + p.id + '\',\'jewel-jaguar\')">🐆 Jewel Jaguar (R)</button>' +
       '<button class="quick-add-btn" style="font-size:13px" onclick="testHatchPet(\'' + p.id + '\',null)">🎲 สุ่ม</button>' +
     '</div>' +
   '</div>';
