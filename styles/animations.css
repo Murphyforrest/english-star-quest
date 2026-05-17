@@ -1,0 +1,467 @@
+/* Animations and visual effects */
+
+@keyframes tw {
+  0%, 100% { opacity: .6; }
+  50%      { opacity: 1; }
+}
+
+@keyframes fi {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tp {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.03); }
+}
+
+@keyframes pp {
+  0%, 100% { transform: scale(1);   opacity: .6; }
+  50%      { transform: scale(1.2); opacity: 1;  }
+}
+
+@keyframes pb {
+  0%, 100% { transform: translateY(0)    rotate(-2deg); }
+  25%      { transform: translateY(-8px) rotate( 2deg); }
+  50%      { transform: translateY(-15px) rotate(-1deg); }
+  75%      { transform: translateY(-8px) rotate( 1deg); }
+}
+
+@keyframes ss {
+  from { transform: rotate(0); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes sb {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.2); }
+}
+
+@keyframes gs {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes ph {
+  0%, 100% { transform: scale(1)   rotate(0); }
+  50%      { transform: scale(1.2) rotate(8deg); }
+}
+
+@keyframes hsk {
+  0%, 100% { transform: translateX(0)     rotate(0); }
+  25%      { transform: translateX(-15px) rotate(-8deg); }
+  75%      { transform: translateX( 15px) rotate( 8deg); }
+}
+
+@keyframes hb {
+  0%   { transform: scale(1);   filter: brightness(1); }
+  30%  { transform: scale(1.4); filter: brightness(3); }
+  60%  { transform: scale(.3);  filter: brightness(5) blur(20px); opacity: .5; }
+  100% { transform: scale(1);   filter: brightness(1); opacity: 1; }
+}
+
+@keyframes hr {
+  0%   { transform: scale(0)   rotate(-180deg); opacity: 0; }
+  70%  { transform: scale(1.2) rotate( 20deg);  opacity: 1; }
+  100% { transform: scale(1)   rotate(0);       opacity: 1; }
+}
+
+@keyframes mp {
+  from { transform: scale(.5); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+
+@keyframes sf {
+  0%   { transform: translate(0, 0) scale(0); opacity: 1; }
+  50%  { transform: translate(var(--mx), var(--my)) scale(1.5); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(.5); opacity: 0; }
+}
+
+@keyframes cf {
+  0%   { transform: translateY(-100vh) rotate(0);     opacity: 1; }
+  100% { transform: translateY( 100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes spk {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0); }
+  50%  { opacity: 1; transform: translate(var(--sx), var(--sy)) scale(1.5); }
+  100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0); }
+}
+
+@keyframes ff {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes shk {
+  0%, 100% { transform: translate(0, 0); }
+  20%      { transform: translate(-8px,  4px); }
+  40%      { transform: translate( 8px, -4px); }
+  60%      { transform: translate(-4px, -8px); }
+  80%      { transform: translate( 4px,  8px); }
+}
+
+@keyframes fn {
+  0%   { transform: translate(-50%, 0) scale(0);     opacity: 0; }
+  20%  { transform: translate(-50%, -20px) scale(1.5); opacity: 1; }
+  100% { transform: translate(-50%, -150px) scale(1);  opacity: 0; }
+}
+
+/* Effect classes that trigger the animations above */
+
+.star-counter.bp {
+  animation: sb .5s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.pet-container.happy {
+  animation: ph .6s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.pet-container.h-shake {
+  animation: hsk .35s ease-in-out 6;
+}
+
+.pet-container.h-burst {
+  animation: hb 1s ease-out forwards;
+}
+
+.pet-container.h-reveal {
+  animation: hr 1s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.star-particle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 32px;
+  z-index: 1000;
+  animation: sf 1s cubic-bezier(.34, 1.56, .64, 1) forwards;
+}
+
+.confetti {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999;
+  width: 14px;
+  height: 14px;
+  animation: cf 3s linear forwards;
+}
+
+.sparkle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 998;
+  font-size: 20px;
+  animation: spk 1.5s ease-out forwards;
+}
+
+.screen-flash {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 215, 0, .6), transparent 60%);
+  pointer-events: none;
+  z-index: 997;
+  animation: ff 1s ease-out forwards;
+}
+
+.shake {
+  animation: shk .5s;
+}
+
+.float-number {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1001;
+  font-family: 'Bagel Fat One', cursive;
+  font-size: 48px;
+  color: #ffd700;
+  text-shadow: 0 0 20px #ffd700;
+  animation: fn 1.5s cubic-bezier(.34, 1.56, .64, 1) forwards;
+}
+
+/* ───────────────────── Hatching effects (Phase 2) ───────────────────── */
+
+/* Pulsing rainbow aura around the egg during early hatch phase */
+@keyframes ha {
+  0%, 100% { transform: scale(0.9); opacity: 0.4; }
+  50%      { transform: scale(1.1); opacity: 0.85; }
+}
+
+.hatch-aura {
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  pointer-events: none;
+  z-index: 996;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255, 102, 196, 0.45) 0%,
+    rgba(196, 144, 255, 0.35) 30%,
+    rgba(125, 200, 255, 0.25) 60%,
+    transparent 80%);
+  filter: blur(15px);
+  animation: ha 0.7s ease-in-out infinite;
+}
+
+/* Rainbow light beam shooting out from cracks */
+@keyframes hbeam {
+  0%   { opacity: 0; transform: translate(-50%, -100%) rotate(var(--a, 0deg)) scaleY(0); }
+  20%  { opacity: 1; transform: translate(-50%, -100%) rotate(var(--a, 0deg)) scaleY(0.4); }
+  50%  { opacity: 1; transform: translate(-50%, -100%) rotate(var(--a, 0deg)) scaleY(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -100%) rotate(var(--a, 0deg)) scaleY(1.5); }
+}
+
+.hatch-beam {
+  position: fixed;
+  width: 18px;
+  height: 280px;
+  pointer-events: none;
+  z-index: 997;
+  transform-origin: 50% 100%;
+  border-radius: 50% 50% 0 0;
+  filter: blur(2px);
+  animation: hbeam 1s ease-out forwards;
+}
+
+/* Rainbow particles exploding outward during burst */
+@keyframes rp {
+  0%   { transform: translate(0, 0) rotate(0)         scale(0.3); opacity: 1; }
+  20%  { transform: translate(0, 0) rotate(0)         scale(1.2); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.5); opacity: 0; }
+}
+
+.rainbow-particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 998;
+  border-radius: 50%;
+  box-shadow: 0 0 14px currentColor;
+  animation: rp 2.2s cubic-bezier(.2, .8, .3, 1) forwards;
+}
+
+/* Continuous rainbow aura around a legendary pet after reveal */
+@keyframes laura {
+  0%   { box-shadow: 0 0 30px rgba(255,102,196,0.6), 0 0 60px rgba(196,144,255,0.4); }
+  33%  { box-shadow: 0 0 30px rgba(196,144,255,0.6), 0 0 60px rgba(125,200,255,0.4); }
+  66%  { box-shadow: 0 0 30px rgba(125,200,255,0.6), 0 0 60px rgba(255,102,196,0.4); }
+  100% { box-shadow: 0 0 30px rgba(255,102,196,0.6), 0 0 60px rgba(196,144,255,0.4); }
+}
+
+.pet-container.h-legendary-aura {
+  border-radius: 50%;
+  animation: pb 2.5s ease-in-out infinite, laura 3s ease-in-out infinite;
+}
+
+.pet-container.h-legendary-aura .pet-svg {
+  filter: drop-shadow(0 0 25px rgba(255, 102, 196, 0.7))
+          drop-shadow(0 0 50px rgba(125, 200, 255, 0.5));
+}
+
+/* The mystery egg gets a softer, rainbow-tinted drop shadow instead of pink */
+.pet-container .pet-svg {
+  transition: filter .4s ease;
+}
+
+/* ───────────────────── Rainbow Dragon — living animations ─────────────────────
+ * Each animation targets a class inside the SVG (set in pets-pool.js).
+ * Wings flap, body breathes, eyes blink, tail sways, aura pulses, sparkles drift.
+ * Keep transforms cheap (rotate/scale/opacity) — runs smooth on iPad.
+ */
+
+@keyframes rd-wing-flap-l {
+  0%, 100% { transform: rotate(-2deg)  scaleX(1); }
+  50%      { transform: rotate(-22deg) scaleX(0.9); }
+}
+
+@keyframes rd-wing-flap-r {
+  0%, 100% { transform: rotate(2deg)   scaleX(1); }
+  50%      { transform: rotate(22deg)  scaleX(0.9); }
+}
+
+@keyframes rd-tail-sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50%      { transform: rotate( 8deg); }
+}
+
+@keyframes rd-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.025); }
+}
+
+@keyframes rd-head-tilt {
+  0%, 100% { transform: rotate(0); }
+  30%      { transform: rotate(-1.5deg); }
+  70%      { transform: rotate( 1.5deg); }
+}
+
+@keyframes rd-blink {
+  0%, 91%, 100% { transform: scaleY(1); }
+  94%, 96%      { transform: scaleY(0.06); }
+}
+
+@keyframes rd-aura-pulse-outer {
+  0%, 100% { transform: scale(1);    opacity: 0.7; }
+  50%      { transform: scale(1.15); opacity: 1;   }
+}
+
+@keyframes rd-aura-pulse-inner {
+  0%, 100% { transform: scale(1);    opacity: 0.5; }
+  50%      { transform: scale(1.1);  opacity: 0.95; }
+}
+
+@keyframes rd-sparkle-drift-1 {
+  0%   { transform: translate(0, 0)   scale(1); opacity: 1; }
+  50%  { transform: translate(6px, -8px) scale(1.3); opacity: 1; }
+  100% { transform: translate(0, 0)   scale(1); opacity: 0.6; }
+}
+
+@keyframes rd-sparkle-drift-2 {
+  0%   { transform: translate(0, 0)    scale(1); opacity: 1; }
+  50%  { transform: translate(-5px, 7px) scale(1.4); opacity: 1; }
+  100% { transform: translate(0, 0)    scale(1); opacity: 0.6; }
+}
+
+@keyframes rd-sparkle-drift-3 {
+  0%   { transform: translate(0, 0)    rotate(0)    scale(1); opacity: 1; }
+  100% { transform: translate(0, -10px) rotate(180deg) scale(0.5); opacity: 0; }
+}
+
+/* Selectors — only apply to SVGs that live inside .pet-svg (i.e. on screen) */
+.pet-svg .rd-wing-left  { animation: rd-wing-flap-l 3.2s ease-in-out infinite; transform-origin: 62px 92px; }
+.pet-svg .rd-wing-right { animation: rd-wing-flap-r 3.2s ease-in-out infinite; transform-origin: 138px 92px; animation-delay: 0.15s; }
+.pet-svg .rd-tail       { animation: rd-tail-sway 4.5s ease-in-out infinite;  transform-origin: 155px 145px; }
+.pet-svg .rd-body       { animation: rd-breathe 3.8s ease-in-out infinite;    transform-origin: 100px 135px; }
+.pet-svg .rd-head       { animation: rd-head-tilt 6s ease-in-out infinite;    transform-origin: 100px 110px; }
+.pet-svg .rd-eye-l,
+.pet-svg .rd-eye-r      { animation: rd-blink 5.5s ease-in-out infinite; }
+.pet-svg .rd-eye-r      { animation-delay: 0.05s; }
+.pet-svg .rd-aura-outer { animation: rd-aura-pulse-outer 4s ease-in-out infinite; transform-origin: 100px 100px; }
+.pet-svg .rd-aura-inner { animation: rd-aura-pulse-inner 3s ease-in-out infinite; transform-origin: 100px 105px; }
+
+.pet-svg .rd-sparkle           { transform-box: fill-box; transform-origin: center; }
+.pet-svg .rd-sparkle-1         { animation: rd-sparkle-drift-1 2.4s ease-in-out infinite; }
+.pet-svg .rd-sparkle-2         { animation: rd-sparkle-drift-2 2.8s ease-in-out infinite; animation-delay: 0.4s; }
+.pet-svg .rd-sparkle-3         { animation: rd-sparkle-drift-3 3.2s ease-in infinite; }
+.pet-svg .rd-sparkle-4         { animation: rd-sparkle-drift-1 2.6s ease-in-out infinite; animation-delay: 1s; }
+.pet-svg .rd-sparkle-5         { animation: rd-sparkle-drift-3 2.9s ease-in infinite; animation-delay: 0.8s; }
+.pet-svg .rd-sparkle-6         { animation: rd-sparkle-drift-2 3.4s ease-in-out infinite; animation-delay: 1.5s; }
+
+/* Lightweight life-signs for the other (non-legendary) pets:
+ * gentle breathing, no per-element animations. Targets the SVG root,
+ * but only when not the legendary class to avoid stacking. */
+@keyframes pet-idle-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.018); }
+}
+
+.pet-container > div > .pet-svg:not(.legendary-dragon) {
+  transform-origin: 50% 60%;
+  animation: pet-idle-breathe 3.6s ease-in-out infinite;
+}
+
+/* ───────────────────── Lottie pets ─────────────────────
+ * dotLottie player is a web component. We wrap it in .lottie-wrap and
+ * apply size + filter there so styling cascades reliably through shadow DOM.
+ */
+
+/* Sizing — wrapper carries the size; the inner player fills the wrapper. */
+.lottie-wrap {
+  display: inline-block;
+  line-height: 0;
+}
+
+/* When rendered in the dashboard (pet-svg context) — same visual size as SVG pets */
+.pet-container .lottie-wrap {
+  width: 240px;
+  height: 240px;
+}
+
+/* When rendered as a player-avatar (login card / parent mode small icon) */
+.player-card .lottie-wrap {
+  width: 130px;
+  height: 130px;
+}
+
+.lottie-pet {
+  width: 100%   !important;
+  height: 100%  !important;
+  display: block;
+  background: transparent !important;
+}
+
+/* Whole-body color cycle (no pattern overlay) — the version the user picked.
+ * Body color shifts pink → purple → blue → back; drop-shadow glow follows along.
+ * Stays within the constrained palette (negative hue-rotate avoids greens/yellows).
+ */
+@keyframes lottie-hue-cycle {
+  0%, 100% { filter: hue-rotate(0deg)    saturate(1.4) brightness(1.05) drop-shadow(0 0 24px rgba(255, 102, 196, 0.65)); }
+  33%      { filter: hue-rotate(-65deg)  saturate(1.5) brightness(1.05) drop-shadow(0 0 24px rgba(196, 144, 255, 0.65)); }
+  66%      { filter: hue-rotate(-130deg) saturate(1.5) brightness(1.05) drop-shadow(0 0 24px rgba(125, 200, 255, 0.65)); }
+}
+
+.lottie-wrap.lottie-rainbow {
+  animation: lottie-hue-cycle 6s ease-in-out infinite;
+}
+
+/* ───────────────────── Math Tutor — answer feedback overlays ─────────────────────
+ * Duolingo-style instant celebrations: big bouncing text + color flash.
+ * The kind class chooses the color theme; the kind text is bounced in by tfPop.
+ */
+
+.tutor-feedback-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1100;
+  animation: tfFade 1.5s ease-out forwards;
+}
+
+.tutor-feedback-text {
+  font-family: 'Bagel Fat One', cursive;
+  font-size: 64px;
+  text-shadow: 0 6px 30px currentColor;
+  animation: tfPop 0.7s cubic-bezier(.34, 1.56, .64, 1);
+  padding: 20px 40px;
+  border-radius: 30px;
+  text-align: center;
+}
+
+.tutor-feedback-correct .tutor-feedback-text {
+  color: #4cd964;
+  background: rgba(76, 217, 100, 0.18);
+  border: 3px solid rgba(76, 217, 100, 0.7);
+}
+
+.tutor-feedback-almost .tutor-feedback-text {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.18);
+  border: 3px solid rgba(255, 215, 0, 0.7);
+}
+
+.tutor-feedback-wrong .tutor-feedback-text {
+  color: #ff66c4;
+  background: rgba(255, 102, 196, 0.15);
+  border: 3px solid rgba(255, 102, 196, 0.5);
+  font-size: 52px;
+}
+
+.tutor-feedback-effort .tutor-feedback-text {
+  color: #c490ff;
+  background: rgba(196, 144, 255, 0.15);
+  border: 3px solid rgba(196, 144, 255, 0.6);
+}
+
+@keyframes tfPop {
+  0%   { transform: scale(0)   rotate(-15deg); opacity: 0; }
+  50%  { transform: scale(1.2) rotate( 5deg);  opacity: 1; }
+  70%  { transform: scale(0.95) rotate(-2deg); }
+  100% { transform: scale(1)   rotate(0);      opacity: 1; }
+}
+
+@keyframes tfFade {
+  0%, 70% { opacity: 1; }
+  100%    { opacity: 0; transform: scale(1.1); }
+}

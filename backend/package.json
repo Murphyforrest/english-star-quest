@@ -1,0 +1,14 @@
+{
+  "name": "english-star-quest-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Worker AI proxy for English Star Quest",
+  "scripts": {
+    "dev": "wrangler dev --port 8787 --local",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

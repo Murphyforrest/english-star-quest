@@ -1,737 +1,202 @@
 <!DOCTYPE html>
-
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>English Star Quest 🌟</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Bagel+Fat+One&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{overflow-x:hidden;font-family:'Fredoka',sans-serif;background:#0a0e27;color:#fff;min-height:100vh;user-select:none;-webkit-user-select:none}
-.cosmos{position:fixed;inset:0;background:radial-gradient(ellipse at top,#2a1a5e 0%,#0a0e27 50%,#050714 100%);z-index:-2}
-.cosmos::before{content:'';position:absolute;inset:0;background-image:radial-gradient(2px 2px at 20% 30%,#fff,transparent),radial-gradient(2px 2px at 60% 70%,#fff,transparent),radial-gradient(1px 1px at 50% 50%,#fff,transparent),radial-gradient(1px 1px at 80% 10%,#fff,transparent),radial-gradient(2px 2px at 90% 60%,#ffd700,transparent),radial-gradient(1px 1px at 33% 80%,#ff66c4,transparent);background-size:200px 200px;background-repeat:repeat;animation:tw 8s ease-in-out infinite}
-@keyframes tw{0%,100%{opacity:.6}50%{opacity:1}}
-.nebula{position:fixed;width:600px;height:600px;border-radius:50%;filter:blur(100px);z-index:-1;pointer-events:none}
-.nebula.pink{background:rgba(255,102,196,.3);top:-200px;left:-100px}
-.nebula.blue{background:rgba(102,204,255,.25);bottom:-200px;right:-100px}
-.screen{display:none;min-height:100vh;padding:20px;animation:fi .5s ease;max-width:800px;margin:0 auto}
-.screen.active{display:block}
-@keyframes fi{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-#loginScreen{display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center}
-#loginScreen.active{display:flex}
-.game-title{font-family:'Bagel Fat One',cursive;font-size:56px;background:linear-gradient(135deg,#ffd700,#ff66c4 50%,#66ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;animation:tp 3s ease-in-out infinite;line-height:1}
-@keyframes tp{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
-.game-subtitle{font-size:20px;opacity:.9;margin-bottom:50px}
-.player-cards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
-.player-card{width:220px;height:300px;background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(255,255,255,.03));backdrop-filter:blur(20px);border-radius:32px;border:2px solid rgba(255,255,255,.15);cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:all .3s cubic-bezier(.34,1.56,.64,1);padding:16px}
-.player-card:active{transform:translateY(-8px) scale(1.03);border-color:#ffd700}
-.player-avatar{width:130px;height:130px;margin-bottom:12px}
-.player-name{font-size:24px;font-weight:700;margin-bottom:8px}
-.player-stats{font-size:13px;color:#ffd700}
-.add-player-btn{width:220px;height:300px;background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.2);border-radius:32px;color:rgba(255,255,255,.4);font-family:inherit;font-size:70px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.add-player-btn span:last-child{font-size:16px;margin-top:12px;font-weight:600}
-.parent-mode{position:fixed;top:24px;right:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:12px 20px;border-radius:50px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;backdrop-filter:blur(10px);z-index:50}
-.header-bar{display:flex;justify-content:space-between;align-items:center;padding:16px 8px 24px;gap:12px}
-.back-btn{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:20px;cursor:pointer;flex-shrink:0}
-.star-counter{background:linear-gradient(135deg,rgba(255,215,0,.25),rgba(255,102,196,.25));border:2px solid rgba(255,215,0,.5);padding:12px 24px;border-radius:50px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:22px}
-.si{font-size:28px;animation:ss 4s linear infinite;display:inline-block}
-@keyframes ss{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-.star-counter.bp{animation:sb .5s cubic-bezier(.34,1.56,.64,1)}
-@keyframes sb{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
-.streak-badge{background:linear-gradient(135deg,#ff6b35,#ff3366);padding:8px 16px;border-radius:50px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
-.pet-section{text-align:center;margin:24px 0 40px}
-.pet-stage{position:relative;height:320px;display:flex;align-items:center;justify-content:center}
-.pet-platform{position:absolute;bottom:30px;width:240px;height:50px;background:radial-gradient(ellipse at center,rgba(255,215,0,.5),transparent 70%);border-radius:50%;filter:blur(10px);animation:pp 3s ease-in-out infinite}
-@keyframes pp{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.2);opacity:1}}
-.pet-container{position:relative;z-index:2;cursor:pointer;animation:pb 2.5s ease-in-out infinite}
-@keyframes pb{0%,100%{transform:translateY(0) rotate(-2deg)}25%{transform:translateY(-8px) rotate(2deg)}50%{transform:translateY(-15px) rotate(-1deg)}75%{transform:translateY(-8px) rotate(1deg)}}
-.pet-svg{width:220px;height:220px;filter:drop-shadow(0 15px 30px rgba(255,102,196,.5))}
-.pet-name{font-size:24px;font-weight:700;margin-top:8px;color:#ffd700}
-.pet-level{font-size:16px;opacity:.85;margin-bottom:16px}
-.progress-bar{width:80%;max-width:400px;height:18px;background:rgba(255,255,255,.1);border-radius:50px;margin:0 auto;overflow:hidden;border:2px solid rgba(255,255,255,.15)}
-.progress-fill{height:100%;background:linear-gradient(90deg,#ffd700,#ff66c4,#66ccff);background-size:200% 100%;border-radius:50px;transition:width .6s cubic-bezier(.34,1.56,.64,1);animation:gs 3s linear infinite}
-@keyframes gs{0%{background-position:0% 50%}100%{background-position:200% 50%}}
-.pet-container.happy{animation:ph .6s cubic-bezier(.34,1.56,.64,1)}
-@keyframes ph{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.2) rotate(8deg)}}
-.pet-container.h-shake{animation:hsk .35s ease-in-out 6}
-@keyframes hsk{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-15px) rotate(-8deg)}75%{transform:translateX(15px) rotate(8deg)}}
-.pet-container.h-burst{animation:hb 1s ease-out forwards}
-@keyframes hb{0%{transform:scale(1);filter:brightness(1)}30%{transform:scale(1.4);filter:brightness(3)}60%{transform:scale(.3);filter:brightness(5) blur(20px);opacity:.5}100%{transform:scale(1);filter:brightness(1);opacity:1}}
-.pet-container.h-reveal{animation:hr 1s cubic-bezier(.34,1.56,.64,1)}
-@keyframes hr{0%{transform:scale(0) rotate(-180deg);opacity:0}70%{transform:scale(1.2) rotate(20deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
-.section{margin:32px 0}
-.section-title{font-size:24px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:12px}
-.section-title-icon{font-size:32px}
-.quest-grid{display:grid;grid-template-columns:1fr;gap:12px}
-@media (min-width:600px){.quest-grid{grid-template-columns:1fr 1fr}}
-.quest-card{background:linear-gradient(135deg,rgba(255,255,255,.1),rgba(255,255,255,.04));border:2px solid rgba(255,255,255,.1);border-radius:24px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
-.quest-card.completed{background:linear-gradient(135deg,rgba(76,217,100,.2),rgba(76,217,100,.05));border-color:rgba(76,217,100,.4);opacity:.7}
-.quest-card:active:not(.completed){transform:scale(1.02);border-color:#ffd700}
-.quest-icon{font-size:48px;flex-shrink:0}
-.quest-info{flex:1;min-width:0}
-.quest-title{font-size:17px;font-weight:600;margin-bottom:4px}
-.quest-reward{font-size:14px;color:#ffd700;font-weight:600}
-.quest-check{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.quest-card.completed .quest-check{background:#4cd964;border-color:#4cd964}
-.quest-card.completed .quest-check::after{content:'✓';color:#fff;font-size:22px;font-weight:700}
-.quest-add-card{background:rgba(255,215,0,.05);border:2px dashed rgba(255,215,0,.4);border-radius:24px;padding:20px;text-align:center;cursor:pointer;color:#ffd700;font-weight:600;font-size:16px}
-.reward-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media (min-width:600px){.reward-grid{grid-template-columns:repeat(3,1fr)}}
-.reward-card{background:linear-gradient(135deg,rgba(255,102,196,.15),rgba(102,204,255,.15));border:2px solid rgba(255,255,255,.15);border-radius:24px;padding:20px 16px;text-align:center;cursor:pointer}
-.reward-card.locked{opacity:.5;cursor:not-allowed}
-.reward-icon{font-size:56px;margin-bottom:8px}
-.reward-name{font-size:14px;font-weight:600;margin-bottom:8px}
-.reward-cost{background:linear-gradient(135deg,#ffd700,#ff66c4);padding:6px 12px;border-radius:50px;font-size:14px;font-weight:700;display:inline-flex;color:#0a0e27}
-.tab-bar{display:flex;background:rgba(255,255,255,.05);border-radius:50px;padding:6px;margin:24px auto;max-width:400px;border:1px solid rgba(255,255,255,.1)}
-.tab-btn{flex:1;background:none;border:none;color:rgba(255,255,255,.6);padding:12px 16px;border-radius:50px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
-.tab-btn.active{background:linear-gradient(135deg,#ffd700,#ff66c4);color:#0a0e27}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);z-index:1001;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.active{display:flex}
-.modal-content{background:linear-gradient(135deg,#1a1f4a,#0f1230);border:2px solid rgba(255,215,0,.3);border-radius:32px;padding:32px 24px;max-width:480px;width:100%;text-align:center;animation:mp .5s cubic-bezier(.34,1.56,.64,1);max-height:90vh;overflow-y:auto}
-@keyframes mp{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
-.modal-icon{font-size:80px;margin-bottom:12px}
-.modal-icon-svg{width:120px;height:120px;margin:0 auto 12px}
-.modal-title{font-family:'Bagel Fat One',cursive;font-size:28px;background:linear-gradient(135deg,#ffd700,#ff66c4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
-.modal-text{font-size:16px;opacity:.85;margin-bottom:24px;line-height:1.5}
-.setup-input{width:100%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);color:#fff;padding:14px 18px;border-radius:14px;font-family:inherit;font-size:16px;margin-bottom:12px}
-.setup-input:focus{outline:none;border-color:#ffd700}
-.btn-primary{background:linear-gradient(135deg,#ffd700,#ff66c4);border:none;color:#0a0e27;padding:14px 28px;border-radius:50px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer}
-.btn-secondary{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:12px 24px;border-radius:50px;font-family:inherit;font-size:14px;cursor:pointer}
-.btn-danger{background:rgba(255,51,102,.2);border:1px solid rgba(255,51,102,.4);color:#ff3366;padding:8px 12px;border-radius:12px;font-family:inherit;font-size:12px;cursor:pointer}
-.pet-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
-.pet-pick-card{background:rgba(255,255,255,.05);border:3px solid rgba(255,255,255,.1);border-radius:20px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
-.pet-pick-card.selected{border-color:#ffd700;background:rgba(255,215,0,.1);transform:scale(1.05)}
-.pet-pick-card svg{width:80px;height:80px;margin-bottom:4px}
-.pet-pick-name{font-size:13px;font-weight:600}
-.star-particle{position:fixed;pointer-events:none;font-size:32px;z-index:1000;animation:sf 1s cubic-bezier(.34,1.56,.64,1) forwards}
-@keyframes sf{0%{transform:translate(0,0) scale(0);opacity:1}50%{transform:translate(var(--mx),var(--my)) scale(1.5);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(.5);opacity:0}}
-.confetti{position:fixed;pointer-events:none;z-index:999;width:14px;height:14px;animation:cf 3s linear forwards}
-@keyframes cf{0%{transform:translateY(-100vh) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
-.sparkle{position:fixed;pointer-events:none;z-index:998;font-size:20px;animation:spk 1.5s ease-out forwards}
-@keyframes spk{0%{opacity:0;transform:translate(0,0) scale(0)}50%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(1.5)}100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0)}}
-.screen-flash{position:fixed;inset:0;background:radial-gradient(circle at center,rgba(255,215,0,.6),transparent 60%);pointer-events:none;z-index:997;animation:ff 1s ease-out forwards}
-@keyframes ff{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
-.shake{animation:shk .5s}
-@keyframes shk{0%,100%{transform:translate(0,0)}20%{transform:translate(-8px,4px)}40%{transform:translate(8px,-4px)}60%{transform:translate(-4px,-8px)}80%{transform:translate(4px,8px)}}
-.float-number{position:fixed;pointer-events:none;z-index:1001;font-family:'Bagel Fat One',cursive;font-size:48px;color:#ffd700;text-shadow:0 0 20px #ffd700;animation:fn 1.5s cubic-bezier(.34,1.56,.64,1) forwards}
-@keyframes fn{0%{transform:translate(-50%,0) scale(0);opacity:0}20%{transform:translate(-50%,-20px) scale(1.5);opacity:1}100%{transform:translate(-50%,-150px) scale(1);opacity:0}}
-.parent-screen-wrap{max-width:600px;margin:0 auto}
-.parent-screen-wrap h2{font-family:'Bagel Fat One',cursive;font-size:36px;margin-bottom:24px;background:linear-gradient(135deg,#ffd700,#ff66c4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.editor-card{background:rgba(255,255,255,.05);border-radius:20px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
-.empty-state{text-align:center;padding:40px 20px;color:rgba(255,255,255,.5)}
-.empty-state-icon{font-size:64px;margin-bottom:12px}
-.quick-add-stars{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:16px 0}
-.quick-add-btn{background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,102,196,.2));border:2px solid rgba(255,215,0,.4);color:#fff;padding:12px 16px;border-radius:16px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;min-width:70px}
-.backup-info{background:linear-gradient(135deg,rgba(76,217,100,.1),rgba(76,217,100,.04));border:1px solid rgba(76,217,100,.3);border-radius:16px;padding:16px;margin:16px 0;font-size:13px;line-height:1.5}
-.backup-info strong{color:#4cd964}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+  <title>English Star Quest 🌟</title>
+  <meta name="description" content="ผจญภัยเก็บดาว เรียนภาษาอังกฤษและคณิตศาสตร์กับ AI">
+  <meta name="theme-color" content="#0a0e27">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- iOS / iPad standalone app support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Star Quest">
+  <link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/icons/icon-512.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Bagel+Fat+One&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/animations.css">
 </head>
+
 <body>
-<div class="cosmos"></div><div class="nebula pink"></div><div class="nebula blue"></div>
+  <div class="cosmos"></div>
+  <div class="nebula pink"></div>
+  <div class="nebula blue"></div>
 
-<div style="display:none" id="svgLib">
-<svg id="svg-dragon-0" viewBox="0 0 200 200"><defs><linearGradient id="dE" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fff5f9"/><stop offset="50%" stop-color="#ff9ec7"/><stop offset="100%" stop-color="#c44b9c"/></linearGradient><radialGradient id="dEs"><stop offset="0%" stop-color="rgba(255,255,255,.95)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><ellipse cx="100" cy="115" rx="62" ry="78" fill="url(#dE)"/><ellipse cx="100" cy="115" rx="62" ry="78" fill="none" stroke="#a83876" stroke-width="3"/><polygon points="80,75 84,82 75,82" fill="#ffd700" stroke="#a83876"/><polygon points="115,90 119,97 110,97" fill="#ffd700" stroke="#a83876"/><polygon points="125,160 129,167 120,167" fill="#ffd700" stroke="#a83876"/><circle cx="85" cy="105" r="3" fill="#fff" opacity=".9"/><circle cx="120" cy="135" r="2.5" fill="#fff" opacity=".9"/><circle cx="95" cy="155" r="2" fill="#fff" opacity=".9"/><circle cx="115" cy="80" r="2" fill="#fff" opacity=".9"/><ellipse cx="78" cy="80" rx="22" ry="32" fill="url(#dEs)"/><path d="M 88 22 Q 100 18 112 22 Q 100 32 88 22" fill="#ff3366" stroke="#a83876" stroke-width="1.5"/><circle cx="100" cy="25" r="3" fill="#ffd700"/></svg>
+  <!-- Login screen -->
+  <div id="loginScreen" class="screen active">
+    <button class="parent-mode" onclick="showParentMode()">👨‍👩‍👧 พ่อแม่</button>
+    <h1 class="game-title">English<br>Star Quest</h1>
+    <p class="game-subtitle">🌟 ผจญภัยเก็บดาว เลี้ยงสัตว์น้อย 🐉</p>
+    <div class="player-cards" id="playerCards"></div>
+  </div>
 
-<svg id="svg-dragon-1" viewBox="0 0 200 200"><defs><linearGradient id="dB" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ffd5e8"/><stop offset="100%" stop-color="#ff66a8"/></linearGradient><linearGradient id="dBb" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fff5f9"/><stop offset="100%" stop-color="#ffe0ec"/></linearGradient></defs><path d="M 30 178 Q 42 170 58 175 L 50 188 Z" fill="#ff9ec7" stroke="#a83876" stroke-width="2"/><path d="M 145 175 Q 160 170 172 180 L 156 188 Z" fill="#ff9ec7" stroke="#a83876" stroke-width="2"/><path d="M 145 145 Q 175 150 180 130 Q 185 110 168 105 Q 175 130 158 138" fill="url(#dB)" stroke="#c44b9c" stroke-width="2"/><polygon points="170,103 185,98 178,118" fill="#fff5f9" stroke="#c44b9c" stroke-width="2"/><path d="M 55 108 Q 30 95 28 70 Q 45 80 58 95 Q 50 75 62 85 Q 60 100 65 112 Z" fill="#ff9ec7" stroke="#c44b9c" stroke-width="2"/><path d="M 145 108 Q 170 95 172 70 Q 155 80 142 95 Q 150 75 138 85 Q 140 100 135 112 Z" fill="#ff9ec7" stroke="#c44b9c" stroke-width="2"/><ellipse cx="100" cy="130" rx="50" ry="48" fill="url(#dB)"/><ellipse cx="100" cy="140" rx="28" ry="30" fill="url(#dBb)"/><ellipse cx="100" cy="78" rx="48" ry="44" fill="url(#dB)"/><ellipse cx="62" cy="55" rx="10" ry="18" fill="url(#dB)" stroke="#c44b9c" stroke-width="2" transform="rotate(-25 62 55)"/><ellipse cx="138" cy="55" rx="10" ry="18" fill="url(#dB)" stroke="#c44b9c" stroke-width="2" transform="rotate(25 138 55)"/><ellipse cx="60" cy="58" rx="5" ry="10" fill="#ff66a8" transform="rotate(-25 60 58)"/><ellipse cx="140" cy="58" rx="5" ry="10" fill="#ff66a8" transform="rotate(25 140 58)"/><path d="M 80 38 Q 80 50 85 53 L 88 42 Z" fill="#fff5f9" stroke="#c44b9c" stroke-width="2"/><path d="M 120 38 Q 120 50 115 53 L 112 42 Z" fill="#fff5f9" stroke="#c44b9c" stroke-width="2"/><circle cx="84" cy="42" r="1.5" fill="#fff"/><circle cx="116" cy="42" r="1.5" fill="#fff"/><ellipse cx="80" cy="80" rx="13" ry="16" fill="#fff"/><ellipse cx="120" cy="80" rx="13" ry="16" fill="#fff"/><ellipse cx="81" cy="82" rx="10" ry="13" fill="#5a1545"/><ellipse cx="121" cy="82" rx="10" ry="13" fill="#5a1545"/><ellipse cx="82" cy="83" rx="7" ry="10" fill="#a83876"/><ellipse cx="122" cy="83" rx="7" ry="10" fill="#a83876"/><circle cx="84" cy="78" r="4" fill="#fff"/><circle cx="124" cy="78" r="4" fill="#fff"/><circle cx="78" cy="86" r="2" fill="#fff"/><circle cx="118" cy="86" r="2" fill="#fff"/><ellipse cx="65" cy="95" rx="9" ry="6" fill="#ff6b9d" opacity=".6"/><ellipse cx="135" cy="95" rx="9" ry="6" fill="#ff6b9d" opacity=".6"/><path d="M 96 102 Q 100 98 104 102 Q 100 108 96 102" fill="#ff3366"/><path d="M 88 22 Q 100 18 112 22 Q 100 32 88 22" fill="#ff3366" stroke="#c44b9c" stroke-width="1.5"/><circle cx="100" cy="25" r="3" fill="#ffd700"/><ellipse cx="78" cy="172" rx="13" ry="7" fill="#c44b9c"/><ellipse cx="122" cy="172" rx="13" ry="7" fill="#c44b9c"/><path d="M 95 138 Q 100 134 105 138 Q 100 145 95 138" fill="#ff66a8" opacity=".5"/></svg>
+  <!-- Dashboard -->
+  <div id="dashboard" class="screen">
+    <div class="header-bar">
+      <button class="back-btn" onclick="goBack()">←</button>
+      <div class="streak-badge">🔥 <span id="streakDays">0</span> วัน</div>
+      <div class="star-counter" id="starCounter">
+        <span class="si">⭐</span><span id="starCount">0</span>
+      </div>
+    </div>
 
-<svg id="svg-unicorn-0" viewBox="0 0 200 200"><defs><linearGradient id="uE" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fff"/><stop offset="50%" stop-color="#e0c5ff"/><stop offset="100%" stop-color="#9b6dff"/></linearGradient><radialGradient id="uEs"><stop offset="0%" stop-color="rgba(255,255,255,.95)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><ellipse cx="100" cy="115" rx="62" ry="78" fill="url(#uE)"/><ellipse cx="100" cy="115" rx="62" ry="78" fill="none" stroke="#6b3fb8" stroke-width="3"/><polygon points="100,90 105,103 119,103 108,112 113,125 100,117 87,125 92,112 81,103 95,103" fill="#ffd700" stroke="#6b3fb8"/><circle cx="80" cy="140" r="3" fill="#ffd700"/><circle cx="125" cy="155" r="2.5" fill="#ffd700"/><circle cx="95" cy="160" r="2" fill="#ffd700"/><circle cx="115" cy="80" r="2" fill="#ffd700"/><ellipse cx="78" cy="80" rx="22" ry="32" fill="url(#uEs)"/></svg>
+    <div class="pet-section">
+      <div class="pet-stage">
+        <div class="pet-platform"></div>
+        <div class="pet-container" id="petContainer" onclick="petTap()">
+          <div id="petDisplay"></div>
+        </div>
+      </div>
+      <div class="pet-name"  id="petName">น้องไข่</div>
+      <div class="pet-level" id="petLevel">เลเวล 1 — ไข่</div>
+      <div class="progress-bar"><div class="progress-fill" id="petProgress" style="width:0%"></div></div>
+      <div style="margin-top:8px;font-size:13px;opacity:.7" id="petProgressText">0 / 15 ⭐</div>
+    </div>
 
-<svg id="svg-unicorn-1" viewBox="0 0 200 200"><defs><linearGradient id="uB" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#f0e0ff"/></linearGradient><linearGradient id="uH" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ff66c4"/><stop offset="50%" stop-color="#9b6dff"/><stop offset="100%" stop-color="#66ccff"/></linearGradient></defs><path d="M 30 178 Q 42 170 58 175 L 50 188 Z" fill="#e0c5ff" stroke="#6b3fb8" stroke-width="2"/><path d="M 145 175 Q 160 170 172 180 L 156 188 Z" fill="#e0c5ff" stroke="#6b3fb8" stroke-width="2"/><path d="M 145 145 Q 175 145 180 125 Q 185 105 170 100" fill="none" stroke="url(#uH)" stroke-width="14" stroke-linecap="round"/><ellipse cx="100" cy="130" rx="50" ry="48" fill="url(#uB)"/><ellipse cx="100" cy="140" rx="28" ry="30" fill="#fff"/><ellipse cx="100" cy="78" rx="48" ry="44" fill="url(#uB)"/><ellipse cx="62" cy="50" rx="7" ry="14" fill="url(#uB)" stroke="#9b6dff" stroke-width="2" transform="rotate(-25 62 50)"/><ellipse cx="138" cy="50" rx="7" ry="14" fill="url(#uB)" stroke="#9b6dff" stroke-width="2" transform="rotate(25 138 50)"/><ellipse cx="60" cy="53" rx="3" ry="8" fill="#ff9ec7" transform="rotate(-25 60 53)"/><ellipse cx="140" cy="53" rx="3" ry="8" fill="#ff9ec7" transform="rotate(25 140 53)"/><path d="M 95 25 L 100 5 L 105 25 Z" fill="url(#uH)" stroke="#6b3fb8" stroke-width="2"/><path d="M 97 22 L 103 22 M 96 18 L 104 18 M 97 14 L 103 14 M 98 10 L 102 10" stroke="#fff" stroke-width="1" opacity=".8"/><circle cx="100" cy="3" r="3" fill="#ffd700"/><circle cx="80" cy="25" r="1.5" fill="#ffd700"/><circle cx="120" cy="30" r="2" fill="#ff66c4"/><circle cx="125" cy="22" r="1.5" fill="#9b6dff"/><path d="M 75 50 Q 70 65 80 70 Q 90 60 100 55 Q 110 60 120 70 Q 130 65 125 50 Q 110 45 100 48 Q 90 45 75 50 Z" fill="url(#uH)" stroke="#6b3fb8" stroke-width="1.5"/><ellipse cx="80" cy="83" rx="13" ry="16" fill="#fff"/><ellipse cx="120" cy="83" rx="13" ry="16" fill="#fff"/><ellipse cx="81" cy="85" rx="10" ry="13" fill="#3d1f6b"/><ellipse cx="121" cy="85" rx="10" ry="13" fill="#3d1f6b"/><ellipse cx="82" cy="86" rx="7" ry="10" fill="#9b6dff"/><ellipse cx="122" cy="86" rx="7" ry="10" fill="#9b6dff"/><circle cx="84" cy="81" r="4" fill="#fff"/><circle cx="124" cy="81" r="4" fill="#fff"/><circle cx="78" cy="89" r="2" fill="#fff"/><circle cx="118" cy="89" r="2" fill="#fff"/><ellipse cx="65" cy="98" rx="9" ry="6" fill="#ff9ec7" opacity=".6"/><ellipse cx="135" cy="98" rx="9" ry="6" fill="#ff9ec7" opacity=".6"/><ellipse cx="100" cy="105" rx="10" ry="6" fill="#ffe0ec"/><ellipse cx="96" cy="103" rx="1" ry="1.5" fill="#9b6dff"/><ellipse cx="104" cy="103" rx="1" ry="1.5" fill="#9b6dff"/><path d="M 96 110 Q 100 113 104 110" stroke="#9b6dff" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="78" cy="172" rx="11" ry="6" fill="#9b6dff"/><ellipse cx="122" cy="172" rx="11" ry="6" fill="#9b6dff"/></svg>
+    <div style="text-align:center;margin:8px 0 16px">
+      <button class="btn-primary tutor-launch-btn" onclick="openMathTutor()" style="padding:14px 28px;font-size:16px;background:linear-gradient(135deg,#7dc8ff,#c490ff,#ff66c4);background-size:200% 100%;animation:gs 4s linear infinite">
+        📚 เรียนคณิตอังกฤษกับ AI Tutor
+      </button>
+    </div>
 
-<svg id="svg-whale-0" viewBox="0 0 200 200"><defs><linearGradient id="wE" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#b3e5ff"/><stop offset="50%" stop-color="#66ccff"/><stop offset="100%" stop-color="#0080cc"/></linearGradient><radialGradient id="wEs"><stop offset="0%" stop-color="rgba(255,255,255,.95)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><ellipse cx="100" cy="115" rx="62" ry="78" fill="url(#wE)"/><ellipse cx="100" cy="115" rx="62" ry="78" fill="none" stroke="#005c99" stroke-width="3"/><path d="M 70 80 Q 80 75 90 80 Q 80 85 70 80" fill="#fff" opacity=".7"/><path d="M 110 110 Q 120 105 130 110 Q 120 115 110 110" fill="#fff" opacity=".7"/><path d="M 75 145 Q 85 140 95 145 Q 85 150 75 145" fill="#fff" opacity=".7"/><path d="M 115 160 Q 125 155 135 160 Q 125 165 115 160" fill="#fff" opacity=".7"/><circle cx="50" cy="90" r="4" fill="#fff" opacity=".6"/><circle cx="155" cy="120" r="3" fill="#fff" opacity=".6"/><circle cx="60" cy="140" r="3" fill="#fff" opacity=".6"/><ellipse cx="78" cy="80" rx="22" ry="32" fill="url(#wEs)"/></svg>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('quests', this)">🎯 ภารกิจ</button>
+      <button class="tab-btn"        onclick="switchTab('shop',   this)">🎁 ร้านค้า</button>
+    </div>
 
-<svg id="svg-whale-1" viewBox="0 0 200 200"><defs><linearGradient id="wB" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#66ccff"/><stop offset="100%" stop-color="#0080cc"/></linearGradient><linearGradient id="wBb" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#e0f5ff"/></linearGradient></defs><path d="M 30 178 Q 42 170 58 175 L 50 188 Z" fill="#66ccff" stroke="#005c99" stroke-width="2"/><path d="M 145 175 Q 160 170 172 180 L 156 188 Z" fill="#66ccff" stroke="#005c99" stroke-width="2"/><path d="M 100 30 Q 95 15 90 25 Q 85 12 80 22 M 100 30 Q 105 15 110 25 Q 115 12 120 22" fill="none" stroke="#66ccff" stroke-width="3" stroke-linecap="round"/><circle cx="85" cy="20" r="2" fill="#66ccff"/><circle cx="115" cy="22" r="2" fill="#66ccff"/><circle cx="95" cy="12" r="1.5" fill="#66ccff"/><path d="M 145 130 Q 175 115 185 85 Q 175 105 170 115 Q 180 130 175 145 Q 175 130 165 130 Q 155 135 150 142 Z" fill="url(#wB)" stroke="#005c99" stroke-width="2"/><ellipse cx="100" cy="125" rx="58" ry="48" fill="url(#wB)"/><ellipse cx="100" cy="138" rx="38" ry="30" fill="url(#wBb)"/><ellipse cx="58" cy="135" rx="12" ry="8" fill="url(#wB)" stroke="#005c99" stroke-width="2" transform="rotate(-30 58 135)"/><ellipse cx="85" cy="78" rx="4" ry="3" fill="#005c99"/><ellipse cx="80" cy="105" rx="13" ry="16" fill="#fff"/><ellipse cx="120" cy="105" rx="13" ry="16" fill="#fff"/><ellipse cx="81" cy="107" rx="10" ry="13" fill="#003d6b"/><ellipse cx="121" cy="107" rx="10" ry="13" fill="#003d6b"/><ellipse cx="82" cy="108" rx="7" ry="10" fill="#0066aa"/><ellipse cx="122" cy="108" rx="7" ry="10" fill="#0066aa"/><circle cx="84" cy="103" r="4" fill="#fff"/><circle cx="124" cy="103" r="4" fill="#fff"/><circle cx="78" cy="111" r="2" fill="#fff"/><circle cx="118" cy="111" r="2" fill="#fff"/><path d="M 85 145 Q 100 155 115 145" stroke="#003d6b" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="100" cy="150" rx="4" ry="2" fill="#ff6b9d"/><ellipse cx="65" cy="130" rx="8" ry="5" fill="#ff9ec7" opacity=".5"/><ellipse cx="135" cy="130" rx="8" ry="5" fill="#ff9ec7" opacity=".5"/><path d="M 95 138 Q 100 134 105 138 Q 100 145 95 138" fill="#fff" opacity=".7"/></svg>
+    <div id="questsTab" class="tab-content active">
+      <div class="section">
+        <h2 class="section-title"><span class="section-title-icon">🎯</span>ภารกิจวันนี้</h2>
+        <div class="quest-grid" id="questGrid"></div>
+        <div class="quest-add-card" onclick="showAddQuestModal()" style="margin-top:12px">➕ เพิ่มภารกิจ</div>
+      </div>
+    </div>
 
-</div>
+    <div id="shopTab" class="tab-content">
+      <div class="section">
+        <h2 class="section-title"><span class="section-title-icon">🎁</span>ร้านแลกของรางวัล</h2>
+        <div class="reward-grid" id="rewardGrid"></div>
+      </div>
+    </div>
+  </div>
 
-<div id="loginScreen" class="screen active">
-<button class="parent-mode" onclick="showParentMode()">👨‍👩‍👧 พ่อแม่</button>
-<h1 class="game-title">English<br>Star Quest</h1>
-<p class="game-subtitle">🌟 ผจญภัยเก็บดาว เลี้ยงสัตว์น้อย 🐉</p>
-<div class="player-cards" id="playerCards"></div>
-</div>
+  <!-- Parent mode -->
+  <div id="parentScreen" class="screen">
+    <div class="parent-screen-wrap">
+      <button class="back-btn" onclick="goBack()" style="margin-bottom:16px">←</button>
+      <h2>👨‍👩‍👧 โหมดพ่อแม่</h2>
 
-<div id="dashboard" class="screen">
-<div class="header-bar">
-<button class="back-btn" onclick="goBack()">←</button>
-<div class="streak-badge">🔥 <span id="streakDays">0</span> วัน</div>
-<div class="star-counter" id="starCounter"><span class="si">⭐</span><span id="starCount">0</span></div>
-</div>
-<div class="pet-section">
-<div class="pet-stage"><div class="pet-platform"></div><div class="pet-container" id="petContainer" onclick="petTap()"><div id="petDisplay"></div></div></div>
-<div class="pet-name" id="petName">น้องไข่</div>
-<div class="pet-level" id="petLevel">เลเวล 1 — ไข่</div>
-<div class="progress-bar"><div class="progress-fill" id="petProgress" style="width:0%"></div></div>
-<div style="margin-top:8px;font-size:13px;opacity:.7" id="petProgressText">0 / 15 ⭐</div>
-</div>
-<div class="tab-bar">
-<button class="tab-btn active" onclick="switchTab('quests',this)">🎯 ภารกิจ</button>
-<button class="tab-btn" onclick="switchTab('shop',this)">🎁 ร้านค้า</button>
-</div>
-<div id="questsTab" class="tab-content active">
-<div class="section">
-<h2 class="section-title"><span class="section-title-icon">🎯</span>ภารกิจวันนี้</h2>
-<div class="quest-grid" id="questGrid"></div>
-<div class="quest-add-card" onclick="showAddQuestModal()" style="margin-top:12px">➕ เพิ่มภารกิจ</div>
-</div>
-</div>
-<div id="shopTab" class="tab-content">
-<div class="section">
-<h2 class="section-title"><span class="section-title-icon">🎁</span>ร้านแลกของรางวัล</h2>
-<div class="reward-grid" id="rewardGrid"></div>
-</div>
-</div>
-</div>
+      <div class="backup-info">
+        <strong>💾 ระบบสำรองข้อมูล:</strong> ข้อมูลถูกบันทึกอัตโนมัติในเครื่อง iPad<br>
+        <strong>แนะนำ:</strong> กดปุ่ม "สำรองข้อมูล" ทุกอาทิตย์ เก็บไฟล์ใน iCloud/Email → ถ้า iPad พังก็กู้คืนได้ทันที
+      </div>
 
-<div id="parentScreen" class="screen">
-<div class="parent-screen-wrap">
-<button class="back-btn" onclick="goBack()" style="margin-bottom:16px">←</button>
-<h2>👨‍👩‍👧 โหมดพ่อแม่</h2>
-<div class="backup-info">
-<strong>💾 ระบบสำรองข้อมูล:</strong> ข้อมูลถูกบันทึกอัตโนมัติในเครื่อง iPad<br>
-<strong>แนะนำ:</strong> กดปุ่ม "สำรองข้อมูล" ทุกอาทิตย์ เก็บไฟล์ใน iCloud/Email → ถ้า iPad พังก็กู้คืนได้ทันที
-</div>
-<div class="section">
-<h2 class="section-title"><span class="section-title-icon">💾</span>สำรอง / กู้คืนข้อมูล</h2>
-<button class="btn-primary" onclick="exportData()" style="width:100%;margin-bottom:8px">📥 สำรองข้อมูล (Download)</button>
-<button class="btn-secondary" onclick="document.getElementById('importFile').click()" style="width:100%">📤 กู้คืนข้อมูล (Upload)</button>
-<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-</div>
-<div class="section">
-<h2 class="section-title"><span class="section-title-icon">⭐</span>เพิ่ม/ลบดาวให้ลูก</h2>
-<div id="parentStarManager"></div>
-</div>
-<div class="section">
-<h2 class="section-title"><span class="section-title-icon">👶</span>ผู้เล่น</h2>
-<div id="parentPlayerList"></div>
-</div>
-<div class="section">
-<h2 class="section-title"><span class="section-title-icon">🎁</span>ของรางวัล</h2>
-<div id="parentRewardList"></div>
-</div>
-<div class="section">
-<h2 class="section-title"><span class="section-title-icon">🎯</span>ภารกิจ</h2>
-<div id="parentQuestList"></div>
-</div>
-<div class="section" style="margin-top:40px">
-<button class="btn-secondary" onclick="resetDailyQuests()" style="width:100%">🔄 รีเซ็ตภารกิจวันนี้</button>
-</div>
-</div>
-</div>
+      <div class="section">
+        <h2 class="section-title"><span class="section-title-icon">💾</span>สำรอง / กู้คืนข้อมูล</h2>
+        <button class="btn-primary"   onclick="exportData()" style="width:100%;margin-bottom:8px">📥 สำรองข้อมูล (Download)</button>
+        <button class="btn-secondary" onclick="document.getElementById('importFile').click()" style="width:100%">📤 กู้คืนข้อมูล (Upload)</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
 
-<div class="modal-overlay" id="modal"><div class="modal-content" id="modalContent"></div></div>
+      <div class="section">
+        <h2 class="section-title"><span class="section-title-icon">⭐</span>เพิ่ม/ลบดาวให้ลูก</h2>
+        <div id="parentStarManager"></div>
+      </div>
 
-<script>
-let state = { players: [], rewards: [], quests: [], currentPlayer: null, version: 1 };
-const PET_TYPES = { dragon:{name:'มังกรสาว'}, unicorn:{name:'ยูนิคอร์น'}, whale:{name:'ปลาวาฬน้อย'} };
-const PET_STAGES = [
-  { name: 'ไข่', threshold: 0 },
-  { name: 'ลูกน้อย', threshold: 15 },
-  { name: 'วัยเด็ก', threshold: 50 },
-  { name: 'วัยรุ่น', threshold: 120 },
-  { name: 'ในตำนาน', threshold: 250 }
-];
-const DEFAULT_QUESTS = [
-  { id:'q1', icon:'🎬', title:'ดู YouTube ภาษาอังกฤษ 30 นาที', stars:2 },
-  { id:'q2', icon:'📚', title:'อ่านหนังสือภาษาอังกฤษ 10 นาที', stars:3 },
-  { id:'q3', icon:'🎤', title:'เรียนกับครูภาษาอังกฤษ', stars:5 },
-  { id:'q4', icon:'🗣️', title:'เล่าวันนี้เป็นภาษาอังกฤษ', stars:4 },
-  { id:'q5', icon:'🎵', title:'ฟังเพลงอังกฤษ + ร้องตาม', stars:1 },
-  { id:'q6', icon:'🛏️', title:'พับผ้าปูที่นอน', stars:2 },
-  { id:'q7', icon:'🧹', title:'เก็บของในห้อง', stars:2 }
-];
-const DEFAULT_REWARDS = [
-  { id:'r1', icon:'🍭', name:'ขนมพิเศษ', cost:30 },
-  { id:'r2', icon:'🎮', name:'เล่นเกม 1 ชั่วโมง', cost:50 },
-  { id:'r3', icon:'🎬', name:'ดูหนัง 1 เรื่อง', cost:80 },
-  { id:'r4', icon:'🧸', name:'ของเล่นเล็ก', cost:150 },
-  { id:'r5', icon:'🍕', name:'พิซซ่า', cost:200 },
-  { id:'r6', icon:'🎢', name:'ไปสวนสนุก', cost:500 },
-  { id:'r7', icon:'🎁', name:'ของขวัญพิเศษ', cost:1000 }
-];
+      <div class="section">
+        <h2 class="section-title"><span class="section-title-icon">👶</span>ผู้เล่น</h2>
+        <div id="parentPlayerList"></div>
+      </div>
 
-function saveState() {
-  try { localStorage.setItem('starQuest_v1', JSON.stringify(state)); } catch(e) {
-    try { window._sq = JSON.stringify(state); } catch(e2) {}
-  }
-}
-function loadState() {
-  try { const d = localStorage.getItem('starQuest_v1'); if (d) { state = JSON.parse(d); return true; } } catch(e) {}
-  try { if (window._sq) { state = JSON.parse(window._sq); return true; } } catch(e) {}
-  return false;
-}
-function exportData() {
-  try {
-    const data = JSON.stringify(state, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'StarQuest_Backup_' + new Date().toISOString().split('T')[0] + '.json';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showFloatingText('✅ สำรองสำเร็จ!');
-  } catch(e) { alert('ไม่สามารถสำรอง: ' + e.message); }
-}
-function importData(event) {
-  const file = event.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const imp = JSON.parse(e.target.result);
-      if (!imp.players || !imp.quests || !imp.rewards) { alert('ไฟล์ไม่ถูกต้อง'); return; }
-      if (confirm('แทนที่ข้อมูลปัจจุบัน?')) {
-        state = imp; saveState(); renderParentMode(); renderLogin();
-        showFloatingText('✅ กู้คืนสำเร็จ!');
-      }
-    } catch(err) { alert('ไฟล์เสีย: ' + err.message); }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
-function getPetSvg(petType, stageIdx, sizeClass) {
-  sizeClass = sizeClass || 'pet-svg';
-  petType = petType || 'dragon';
-  const useStage = stageIdx > 1 ? 1 : stageIdx;
-  const tpl = document.getElementById('svg-' + petType + '-' + useStage);
-  if (!tpl) return '';
-  const clone = tpl.cloneNode(true);
-  clone.removeAttribute('id');
-  clone.setAttribute('class', sizeClass);
-  return clone.outerHTML;
-}
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0, 0);
-}
-function goBack() { showScreen('loginScreen'); renderLogin(); }
-function renderLogin() {
-  const c = document.getElementById('playerCards');
-  c.innerHTML = '';
-  state.players.forEach(p => {
-    const stage = getPetStageIndex(p.totalStars);
-    const card = document.createElement('div');
-    card.className = 'player-card';
-    card.onclick = () => selectPlayer(p.id);
-    card.innerHTML = getPetSvg(p.petType, stage, 'player-avatar') + '<div class="player-name">' + p.name + '</div><div class="player-stats">⭐ ' + p.totalStars + ' • 🔥 ' + p.streak + '</div>';
-    c.appendChild(card);
-  });
-  if (state.players.length < 4) {
-    const b = document.createElement('button');
-    b.className = 'add-player-btn';
-    b.onclick = showAddPlayerModal;
-    b.innerHTML = '<span>+</span><span>เพิ่มผู้เล่น</span>';
-    c.appendChild(b);
-  }
-}
-function selectPlayer(id) { state.currentPlayer = id; saveState(); showScreen('dashboard'); renderDashboard(); }
-let pickedPet = 'dragon';
-function showAddPlayerModal() {
-  pickedPet = 'dragon';
-  let html = '<div class="pet-picker">';
-  Object.keys(PET_TYPES).forEach(k => {
-    const tpl = document.getElementById('svg-' + k + '-1');
-    const clone = tpl.cloneNode(true);
-    clone.removeAttribute('id');
-    html += '<div class="pet-pick-card ' + (k === 'dragon' ? 'selected' : '') + '" data-pet="' + k + '" onclick="pickPet(\'' + k + '\')">' + clone.outerHTML + '<div class="pet-pick-name">' + PET_TYPES[k].name + '</div></div>';
-  });
-  html += '</div>';
-  document.getElementById('modalContent').innerHTML = '<h3 class="modal-title">เริ่มผจญภัยใหม่!</h3><p class="modal-text">ตั้งชื่อ + เลือกสัตว์น้อย<br>(จะออกมาจากไข่!)</p><input type="text" class="setup-input" id="newPlayerName" placeholder="ชื่อของหนู" maxlength="15" />' + html + '<button class="btn-primary" id="confAddP" style="width:100%;margin-bottom:8px">เริ่ม! 🚀</button><button class="btn-secondary" id="canAddP" style="width:100%">ยกเลิก</button>';
-  document.getElementById('confAddP').onclick = confirmAddPlayer;
-  document.getElementById('canAddP').onclick = closeModal;
-  document.getElementById('modal').classList.add('active');
-  setTimeout(() => document.getElementById('newPlayerName').focus(), 100);
-}
-function pickPet(k) {
-  pickedPet = k;
-  document.querySelectorAll('.pet-pick-card').forEach(el => el.classList.toggle('selected', el.dataset.pet === k));
-}
-function confirmAddPlayer() {
-  const name = document.getElementById('newPlayerName').value.trim();
-  if (!name) { document.getElementById('newPlayerName').style.borderColor = '#ff3366'; return; }
-  state.players.push({ id:'p'+Date.now(), name:name, petType:pickedPet, petName:'น้อง'+name, totalStars:0, currentStars:0, streak:0, lastActivity:null, completedQuests:[], claimedRewards:[] });
-  saveState(); closeModal(); renderLogin();
-  if (document.getElementById('parentScreen').classList.contains('active')) renderParentMode();
-}
-function getCurrentPlayer() { return state.players.find(p => p.id === state.currentPlayer); }
-function getPetStageIndex(stars) {
-  let idx = 0;
-  for (let i = 0; i < PET_STAGES.length; i++) { if (stars >= PET_STAGES[i].threshold) idx = i; }
-  return idx;
-}
-function renderDashboard() {
-  const p = getCurrentPlayer(); if (!p) return;
-  document.getElementById('starCount').textContent = p.currentStars;
-  document.getElementById('streakDays').textContent = p.streak;
-  const stageIdx = getPetStageIndex(p.totalStars);
-  const stage = PET_STAGES[stageIdx];
-  document.getElementById('petDisplay').innerHTML = getPetSvg(p.petType, stageIdx);
-  document.getElementById('petName').textContent = p.petName;
-  document.getElementById('petLevel').textContent = 'เลเวล ' + (stageIdx + 1) + ' — ' + stage.name + (stageIdx > 1 ? ' (กำลังพัฒนา)' : '');
-  const next = PET_STAGES[stageIdx + 1];
-  if (next) {
-    const prog = ((p.totalStars - stage.threshold) / (next.threshold - stage.threshold)) * 100;
-    document.getElementById('petProgress').style.width = prog + '%';
-    document.getElementById('petProgressText').textContent = p.totalStars + ' / ' + next.threshold + ' ⭐';
-  } else {
-    document.getElementById('petProgress').style.width = '100%';
-    document.getElementById('petProgressText').textContent = '🏆 LEGENDARY! 🏆';
-  }
-  renderQuests(); renderRewards();
-}
-function renderQuests() {
-  const p = getCurrentPlayer();
-  const g = document.getElementById('questGrid');
-  g.innerHTML = '';
-  state.quests.forEach(q => {
-    const done = p.completedQuests.indexOf(q.id) !== -1;
-    const c = document.createElement('div');
-    c.className = 'quest-card' + (done ? ' completed' : '');
-    c.onclick = function() { completeQuest(q.id, this); };
-    c.innerHTML = '<div class="quest-icon">' + q.icon + '</div><div class="quest-info"><div class="quest-title">' + q.title + '</div><div class="quest-reward">⭐ ' + q.stars + ' ดวง</div></div><div class="quest-check"></div>';
-    g.appendChild(c);
-  });
-}
-function renderRewards() {
-  const p = getCurrentPlayer();
-  const g = document.getElementById('rewardGrid');
-  g.innerHTML = '';
-  state.rewards.forEach(r => {
-    const can = p.currentStars >= r.cost;
-    const c = document.createElement('div');
-    c.className = 'reward-card' + (can ? '' : ' locked');
-    if (can) c.onclick = () => claimReward(r.id);
-    c.innerHTML = '<div class="reward-icon">' + r.icon + '</div><div class="reward-name">' + r.name + '</div><div class="reward-cost">⭐ ' + r.cost + '</div>';
-    g.appendChild(c);
-  });
-}
-function completeQuest(qid, cardEl) {
-  const p = getCurrentPlayer();
-  const q = state.quests.find(x => x.id === qid);
-  if (!q || p.completedQuests.indexOf(qid) !== -1) return;
-  p.completedQuests.push(qid);
-  let m = 1;
-  if (p.streak >= 7) m = 2;
-  else if (p.streak >= 3) m = 1.5;
-  const earned = Math.round(q.stars * m);
-  const wasStage = getPetStageIndex(p.totalStars);
-  p.currentStars += earned;
-  p.totalStars += earned;
-  p.lastActivity = new Date().toISOString().split('T')[0];
-  saveState();
-  if (cardEl) { flyStarsToCounter(cardEl, earned); showFloatingNumber(cardEl, '+' + earned); bumpCounter(); }
-  setTimeout(() => {
-    const newStage = getPetStageIndex(p.totalStars);
-    if (newStage > wasStage) triggerLevelUp(newStage, wasStage);
-    renderDashboard();
-  }, 500);
-}
-function claimReward(rid) {
-  const p = getCurrentPlayer();
-  const r = state.rewards.find(x => x.id === rid);
-  if (!r || p.currentStars < r.cost) return;
-  showModal({ iconText: r.icon, title: 'ยินดีด้วย!', text: 'หนูได้ "' + r.name + '" แล้ว!\nไปบอกพ่อแม่เพื่อรับรางวัลเลย 🎉',
-    buttons: [
-      { text: '✅ รับรางวัล', primary: true, onclick: () => { p.currentStars -= r.cost; p.claimedRewards.push({ id: rid, date: new Date().toISOString() }); saveState(); closeModal(); renderDashboard(); launchConfetti(); }},
-      { text: 'ยกเลิก', primary: false, onclick: closeModal }
-    ]});
-}
-function triggerLevelUp(newStage, oldStage) {
-  const p = getCurrentPlayer();
-  if (oldStage === 0 && newStage >= 1) { triggerHatching(); return; }
-  document.body.classList.add('shake');
-  setTimeout(() => document.body.classList.remove('shake'), 500);
-  spawnSparkles(60); launchConfetti();
-  setTimeout(() => {
-    showModal({ iconText:'🎉', title:'🎉 LEVEL UP! 🎉', text: p.petName + ' ก้าวเข้าสู่ ' + PET_STAGES[newStage].name + '!\n(รูปร่างใหม่กำลังพัฒนา — เร็วๆ นี้)',
-      buttons: [{ text:'เย้! 🚀', primary:true, onclick:closeModal }]});
-  }, 1000);
-}
-function triggerHatching() {
-  const p = getCurrentPlayer();
-  const pc = document.getElementById('petContainer');
-  pc.classList.add('h-shake');
-  spawnSparklesAt(pc, 5);
-  setTimeout(() => {
-    pc.classList.remove('h-shake');
-    pc.classList.add('h-shake');
-    spawnSparklesAt(pc, 8);
-    document.body.classList.add('shake');
-  }, 2100);
-  setTimeout(() => {
-    document.body.classList.remove('shake');
-    pc.classList.remove('h-shake');
-    const f = document.createElement('div');
-    f.className = 'screen-flash';
-    document.body.appendChild(f);
-    setTimeout(() => f.remove(), 1000);
-    pc.classList.add('h-burst');
-    spawnSparkles(100);
-  }, 3700);
-  setTimeout(() => {
-    pc.classList.remove('h-burst');
-    document.getElementById('petDisplay').innerHTML = getPetSvg(p.petType, 1);
-    pc.classList.add('h-reveal');
-    launchConfetti();
-  }, 4700);
-  setTimeout(() => {
-    pc.classList.remove('h-reveal');
-    showModal({ iconHtml: getPetSvg(p.petType, 1, 'modal-icon-svg'), title:'🎉 ฟักไข่สำเร็จ! 🎉', text:'ไข่แตกแล้ว! ' + p.petName + ' ออกมาแล้ว 💖\nเก็บดาวต่อไป จะได้โตขึ้นเรื่อยๆ',
-      buttons: [{ text:'น่ารักมาก! 💖', primary:true, onclick:closeModal }]});
-  }, 6000);
-}
-function bumpCounter() {
-  const c = document.getElementById('starCounter');
-  c.classList.add('bp');
-  setTimeout(() => c.classList.remove('bp'), 500);
-}
-function petTap() {
-  const pet = document.getElementById('petContainer');
-  pet.classList.add('happy');
-  setTimeout(() => pet.classList.remove('happy'), 600);
-  spawnSparklesAt(pet, 8);
-  const p = getCurrentPlayer();
-  const stage = getPetStageIndex(p.totalStars);
-  const msgs = stage === 0 ? ['ฟักไข่ๆ! 🥚', 'อยากออกมา! 💖', 'อบอุ่น! ✨'] : ['สู้ๆ! 💪', 'รักหนู ❤️', 'เก่งมาก! ⭐'];
-  showFloatingText(msgs[Math.floor(Math.random() * msgs.length)]);
-}
-function showFloatingText(text) {
-  const el = document.createElement('div');
-  el.textContent = text;
-  el.style.cssText = 'position:fixed;left:50%;top:40%;transform:translateX(-50%);background:linear-gradient(135deg,#ffd700,#ff66c4);color:#0a0e27;padding:12px 24px;border-radius:50px;font-weight:700;font-size:18px;z-index:1000;pointer-events:none;animation:fu 2s ease-out forwards;box-shadow:0 8px 24px rgba(0,0,0,.3)';
-  document.body.appendChild(el);
-  if (!document.getElementById('fuk')) {
-    const s = document.createElement('style');
-    s.id = 'fuk';
-    s.textContent = '@keyframes fu{0%{transform:translate(-50%,0);opacity:1}100%{transform:translate(-50%,-100px);opacity:0}}';
-    document.head.appendChild(s);
-  }
-  setTimeout(() => el.remove(), 2000);
-}
-function showFloatingNumber(fromEl, text) {
-  const r = fromEl.getBoundingClientRect();
-  const n = document.createElement('div');
-  n.className = 'float-number';
-  n.textContent = text;
-  n.style.left = (r.left + r.width/2) + 'px';
-  n.style.top = (r.top + r.height/2) + 'px';
-  document.body.appendChild(n);
-  setTimeout(() => n.remove(), 1500);
-}
-function flyStarsToCounter(fromEl, count) {
-  const r = fromEl.getBoundingClientRect();
-  const cr = document.querySelector('.star-counter').getBoundingClientRect();
-  const tx = cr.left + cr.width/2 - r.left - r.width/2;
-  const ty = cr.top + cr.height/2 - r.top - r.height/2;
-  for (let i = 0; i < Math.min(count, 8); i++) {
-    setTimeout(() => {
-      const s = document.createElement('div');
-      s.className = 'star-particle';
-      s.textContent = '⭐';
-      s.style.left = (r.left + r.width/2) + 'px';
-      s.style.top = (r.top + r.height/2) + 'px';
-      s.style.setProperty('--mx', (Math.random() - 0.5) * 250 + 'px');
-      s.style.setProperty('--my', (Math.random() - 0.5) * 250 - 80 + 'px');
-      s.style.setProperty('--tx', tx + 'px');
-      s.style.setProperty('--ty', ty + 'px');
-      document.body.appendChild(s);
-      setTimeout(() => s.remove(), 1000);
-    }, i * 60);
-  }
-}
-function spawnSparkles(count) {
-  count = count || 30;
-  const sym = ['✨', '⭐', '🌟', '💫', '💖'];
-  for (let i = 0; i < count; i++) {
-    setTimeout(() => {
-      const s = document.createElement('div');
-      s.className = 'sparkle';
-      s.textContent = sym[Math.floor(Math.random() * sym.length)];
-      s.style.left = Math.random() * window.innerWidth + 'px';
-      s.style.top = Math.random() * window.innerHeight + 'px';
-      s.style.setProperty('--sx', (Math.random() - 0.5) * 200 + 'px');
-      s.style.setProperty('--sy', (Math.random() - 0.5) * 200 + 'px');
-      document.body.appendChild(s);
-      setTimeout(() => s.remove(), 1500);
-    }, i * 30);
-  }
-}
-function spawnSparklesAt(el, count) {
-  count = count || 8;
-  const r = el.getBoundingClientRect();
-  const cx = r.left + r.width/2, cy = r.top + r.height/2;
-  const sym = ['✨', '⭐', '💖', '🌟'];
-  for (let i = 0; i < count; i++) {
-    setTimeout(() => {
-      const s = document.createElement('div');
-      s.className = 'sparkle';
-      s.textContent = sym[Math.floor(Math.random() * sym.length)];
-      s.style.left = cx + 'px';
-      s.style.top = cy + 'px';
-      s.style.setProperty('--sx', (Math.random() - 0.5) * 250 + 'px');
-      s.style.setProperty('--sy', (Math.random() - 0.5) * 250 + 'px');
-      document.body.appendChild(s);
-      setTimeout(() => s.remove(), 1500);
-    }, i * 50);
-  }
-}
-function launchConfetti() {
-  const colors = ['#ffd700', '#ff66c4', '#66ccff', '#4cd964', '#ff6b35', '#9b6dff'];
-  for (let i = 0; i < 80; i++) {
-    const c = document.createElement('div');
-    c.className = 'confetti';
-    c.style.left = Math.random() * 100 + 'vw';
-    c.style.background = colors[Math.floor(Math.random() * colors.length)];
-    c.style.animationDelay = Math.random() * 0.5 + 's';
-    c.style.animationDuration = (2 + Math.random() * 2) + 's';
-    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-    document.body.appendChild(c);
-    setTimeout(() => c.remove(), 4000);
-  }
-}
-function showModal(o) {
-  let icon = '';
-  if (o.iconHtml) icon = o.iconHtml;
-  else if (o.iconText) icon = '<div class="modal-icon">' + o.iconText + '</div>';
-  let html = icon + '<h3 class="modal-title">' + o.title + '</h3><p class="modal-text">' + o.text.replace(/\n/g, '<br>') + '</p>';
-  o.buttons.forEach((b, i) => {
-    html += '<button class="' + (b.primary ? 'btn-primary' : 'btn-secondary') + '" style="width:100%;margin-bottom:8px" data-bi="' + i + '">' + b.text + '</button>';
-  });
-  document.getElementById('modalContent').innerHTML = html;
-  document.querySelectorAll('[data-bi]').forEach(btn => { btn.onclick = o.buttons[parseInt(btn.dataset.bi)].onclick; });
-  document.getElementById('modal').classList.add('active');
-}
-function closeModal() { document.getElementById('modal').classList.remove('active'); }
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.getElementById(tab + 'Tab').classList.add('active');
-}
-function showAddQuestModal() {
-  document.getElementById('modalContent').innerHTML = '<div class="modal-icon">🎯</div><h3 class="modal-title">เพิ่มภารกิจใหม่</h3><input type="text" class="setup-input" id="nqi" placeholder="emoji" maxlength="2" value="🎯" /><input type="text" class="setup-input" id="nqt" placeholder="ชื่อภารกิจ" maxlength="50" /><input type="number" class="setup-input" id="nqs" placeholder="ดาว" min="1" value="3" /><button class="btn-primary" id="cnq" style="width:100%;margin-bottom:8px">เพิ่ม</button><button class="btn-secondary" id="canq" style="width:100%">ยกเลิก</button>';
-  document.getElementById('cnq').onclick = function() {
-    const i = document.getElementById('nqi').value.trim() || '🎯';
-    const t = document.getElementById('nqt').value.trim();
-    const s = parseInt(document.getElementById('nqs').value);
-    if (!t || !s || s < 1) { document.getElementById('nqt').style.borderColor = '#ff3366'; return; }
-    state.quests.push({ id:'q'+Date.now(), icon:i, title:t, stars:s });
-    saveState(); closeModal();
-    if (document.getElementById('dashboard').classList.contains('active')) renderDashboard();
-    if (document.getElementById('parentScreen').classList.contains('active')) renderParentMode();
-  };
-  document.getElementById('canq').onclick = closeModal;
-  document.getElementById('modal').classList.add('active');
-}
-function showParentMode() { showScreen('parentScreen'); renderParentMode(); }
-function renderParentMode() {
-  const sm = document.getElementById('parentStarManager');
-  if (state.players.length === 0) {
-    sm.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👶</div>เพิ่มผู้เล่นก่อน</div>';
-  } else {
-    sm.innerHTML = state.players.map(p => {
-      const stage = getPetStageIndex(p.totalStars);
-      const useS = stage > 1 ? 1 : stage;
-      const tpl = document.getElementById('svg-' + p.petType + '-' + useS);
-      const cl = tpl.cloneNode(true);
-      cl.removeAttribute('id');
-      cl.setAttribute('width', '50'); cl.setAttribute('height', '50');
-      return '<div class="editor-card" style="flex-direction:column;align-items:stretch;gap:12px"><div style="display:flex;align-items:center;gap:12px"><div style="width:50px;height:50px">' + cl.outerHTML + '</div><div style="flex:1"><div style="font-weight:700">' + p.name + '</div><div style="font-size:12px;opacity:.7">⭐ ' + p.currentStars + ' (รวม ' + p.totalStars + ')</div></div></div><div class="quick-add-stars"><button class="quick-add-btn" onclick="adjustStars(\'' + p.id + '\',1)">+1 ⭐</button><button class="quick-add-btn" onclick="adjustStars(\'' + p.id + '\',3)">+3 ⭐</button><button class="quick-add-btn" onclick="adjustStars(\'' + p.id + '\',5)">+5 ⭐</button><button class="quick-add-btn" onclick="adjustStars(\'' + p.id + '\',10)">+10 ⭐</button><button class="quick-add-btn" onclick="customAddStars(\'' + p.id + '\')">📝 ระบุเอง</button><button class="quick-add-btn" style="background:rgba(255,51,102,.2);border-color:rgba(255,51,102,.4);color:#ff3366" onclick="adjustStars(\'' + p.id + '\',-1)">-1</button></div></div>';
-    }).join('');
-  }
-  const pl = document.getElementById('parentPlayerList');
-  pl.innerHTML = state.players.map(p => {
-    const stage = getPetStageIndex(p.totalStars);
-    const useS = stage > 1 ? 1 : stage;
-    const tpl = document.getElementById('svg-' + p.petType + '-' + useS);
-    const cl = tpl.cloneNode(true);
-    cl.removeAttribute('id');
-    cl.setAttribute('width', '50'); cl.setAttribute('height', '50');
-    return '<div class="editor-card"><div style="width:50px;height:50px;flex-shrink:0">' + cl.outerHTML + '</div><div style="flex:1"><div style="font-weight:700">' + p.name + ' <span style="opacity:.6;font-size:12px">(' + PET_TYPES[p.petType].name + ')</span></div><div style="font-size:12px;opacity:.7">🔥 ' + p.streak + ' วัน • ✅ ' + p.completedQuests.length + ' วันนี้</div></div><button class="btn-danger" onclick="deletePlayer(\'' + p.id + '\')">ลบ</button></div>';
-  }).join('') + '<button class="btn-primary" onclick="showAddPlayerModal()" style="width:100%;margin-top:12px">+ เพิ่มผู้เล่น</button>';
-  const rl = document.getElementById('parentRewardList');
-  rl.innerHTML = state.rewards.map(r =>
-    '<div class="editor-card"><span style="font-size:32px">' + r.icon + '</span><div style="flex:1"><div style="font-weight:700">' + r.name + '</div><div style="font-size:12px;opacity:.7;color:#ffd700">⭐ ' + r.cost + '</div></div><button class="btn-danger" onclick="deleteReward(\'' + r.id + '\')">ลบ</button></div>'
-  ).join('') + '<button class="btn-primary" onclick="showAddRewardModal()" style="width:100%;margin-top:12px">+ เพิ่มรางวัล</button>';
-  const ql = document.getElementById('parentQuestList');
-  ql.innerHTML = state.quests.map(q =>
-    '<div class="editor-card"><span style="font-size:32px">' + q.icon + '</span><div style="flex:1"><div style="font-weight:700">' + q.title + '</div><div style="font-size:12px;opacity:.7;color:#ffd700">⭐ ' + q.stars + '</div></div><button class="btn-danger" onclick="deleteQuest(\'' + q.id + '\')">ลบ</button></div>'
-  ).join('') + '<button class="btn-primary" onclick="showAddQuestModal()" style="width:100%;margin-top:12px">+ เพิ่มภารกิจ</button>';
-}
-function adjustStars(pid, amt) {
-  const p = state.players.find(x => x.id === pid);
-  if (!p) return;
-  const wasStage = getPetStageIndex(p.totalStars);
-  p.currentStars = Math.max(0, p.currentStars + amt);
-  if (amt > 0) p.totalStars += amt;
-  saveState(); renderParentMode();
-  const newStage = getPetStageIndex(p.totalStars);
-  if (newStage > wasStage) { launchConfetti(); showFloatingText('🎉 ' + p.name + ' เลเวลอัพ!'); }
-}
-function customAddStars(pid) {
-  document.getElementById('modalContent').innerHTML = '<div class="modal-icon">⭐</div><h3 class="modal-title">ระบุดาวเอง</h3><input type="number" class="setup-input" id="csa" placeholder="จำนวนดาว (- เพื่อลด)" /><button class="btn-primary" id="ccs" style="width:100%;margin-bottom:8px">ยืนยัน</button><button class="btn-secondary" id="cancCs" style="width:100%">ยกเลิก</button>';
-  document.getElementById('ccs').onclick = function() {
-    const a = parseInt(document.getElementById('csa').value);
-    if (isNaN(a) || a === 0) return;
-    adjustStars(pid, a); closeModal();
-  };
-  document.getElementById('cancCs').onclick = closeModal;
-  document.getElementById('modal').classList.add('active');
-  setTimeout(() => document.getElementById('csa').focus(), 100);
-}
-function showAddRewardModal() {
-  document.getElementById('modalContent').innerHTML = '<div class="modal-icon">🎁</div><h3 class="modal-title">เพิ่มรางวัล</h3><input type="text" class="setup-input" id="nri" placeholder="emoji" maxlength="2" value="🎁" /><input type="text" class="setup-input" id="nrn" placeholder="ชื่อรางวัล" maxlength="30" /><input type="number" class="setup-input" id="nrc" placeholder="ราคา (ดาว)" min="1" value="50" /><button class="btn-primary" id="cnr" style="width:100%;margin-bottom:8px">เพิ่ม</button><button class="btn-secondary" id="canr" style="width:100%">ยกเลิก</button>';
-  document.getElementById('cnr').onclick = function() {
-    const i = document.getElementById('nri').value.trim() || '🎁';
-    const n = document.getElementById('nrn').value.trim();
-    const c = parseInt(document.getElementById('nrc').value);
-    if (!n || !c || c < 1) return;
-    state.rewards.push({ id:'r'+Date.now(), icon:i, name:n, cost:c });
-    saveState(); closeModal(); renderParentMode();
-  };
-  document.getElementById('canr').onclick = closeModal;
-  document.getElementById('modal').classList.add('active');
-}
-function deleteReward(id) { state.rewards = state.rewards.filter(r => r.id !== id); saveState(); renderParentMode(); }
-function deleteQuest(id) { state.quests = state.quests.filter(q => q.id !== id); saveState(); renderParentMode(); }
-function deletePlayer(id) {
-  if (!confirm('ลบผู้เล่นนี้?')) return;
-  state.players = state.players.filter(p => p.id !== id);
-  saveState(); renderParentMode(); renderLogin();
-}
-function resetDailyQuests() {
-  if (!confirm('รีเซ็ตภารกิจวันนี้?')) return;
-  const today = new Date().toISOString().split('T')[0];
-  state.players.forEach(p => {
-    if (p.lastActivity) {
-      const y = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-      if (p.lastActivity === y || p.lastActivity === today) {
-        if (p.completedQuests.length > 0) p.streak += 1;
-      } else {
-        p.streak = p.completedQuests.length > 0 ? 1 : 0;
-      }
-    }
-    p.completedQuests = [];
-  });
-  saveState(); renderParentMode();
-  alert('รีเซ็ตเรียบร้อย!');
-}
-function init() {
-  if (!loadState()) {
-    state.rewards = DEFAULT_REWARDS.slice();
-    state.quests = DEFAULT_QUESTS.slice();
-    saveState();
-  }
-  renderLogin();
-}
-init();
-</script>
+      <div class="section">
+        <h2 class="section-title"><span class="section-title-icon">🎁</span>ของรางวัล</h2>
+        <div id="parentRewardList"></div>
+      </div>
 
+      <div class="section">
+        <h2 class="section-title"><span class="section-title-icon">🎯</span>ภารกิจ</h2>
+        <div id="parentQuestList"></div>
+      </div>
+
+      <div class="section" style="margin-top:40px">
+        <button class="btn-secondary" onclick="resetDailyQuests()" style="width:100%;margin-bottom:8px">🔄 รีเซ็ตภารกิจวันนี้</button>
+        <button class="btn-secondary" onclick="resetAllData()" style="width:100%;background:rgba(255,51,102,.15);border-color:rgba(255,51,102,.4);color:#ff8aa8">⚠️ ลบข้อมูลทั้งหมด (เริ่มใหม่)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Math Tutor screen — AI conversation with voice in/out -->
+  <div id="tutorScreen" class="screen">
+    <div class="header-bar">
+      <button class="back-btn" onclick="tutorEnd(); goBack()">←</button>
+      <div style="font-weight:700;font-size:18px;background:linear-gradient(135deg,#ffd700,#ff66c4);-webkit-background-clip:text;-webkit-text-fill-color:transparent">📚 Math Tutor</div>
+      <div class="star-counter">
+        <span class="si">⭐</span><span id="tutorStarCount">0</span>
+      </div>
+    </div>
+
+    <div id="tutorMessages" class="tutor-messages"></div>
+
+    <div id="tutorStatus" class="tutor-status"></div>
+
+    <div class="tutor-controls">
+      <button id="tutorTalkBtn" class="tutor-talk-btn" onclick="tutorTalk()">
+        🎤 <span>พูด</span>
+      </button>
+      <input type="text" id="tutorTypeInput" class="tutor-type-input" placeholder="หรือพิมพ์คำตอบ..." onkeydown="if(event.key==='Enter')tutorSend()">
+      <button class="tutor-send-btn" onclick="tutorSend()">➤</button>
+    </div>
+
+    <div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-secondary" onclick="tutorTestSound()" style="font-size:13px;padding:8px 18px;background:rgba(125,200,255,.15);border-color:rgba(125,200,255,.4);color:#7dc8ff">🔊 ทดสอบเสียง</button>
+      <button id="voiceToggleBtn" class="btn-secondary" onclick="toggleVoice()" style="font-size:13px;padding:8px 18px;background:rgba(255,215,0,.15);border-color:rgba(255,215,0,.4);color:#ffd700">🎙 เสียง: OpenAI (เหมือนคนจริง)</button>
+      <button class="btn-secondary" onclick="tutorEnd()" style="font-size:13px;padding:8px 18px">จบเซสชั่น</button>
+    </div>
+  </div>
+
+  <!-- Modal overlay -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-content" id="modalContent"></div>
+  </div>
+
+  <!-- AI endpoint — live Cloudflare Worker that proxies Anthropic API calls.
+       Switching environments? Override window.AI_ENDPOINT before this loads. -->
+  <script>
+    window.AI_ENDPOINT = window.AI_ENDPOINT || 'https://english-star-quest-ai.gwbiz668.workers.dev';
+  </script>
+
+  <!-- Lottie / dotLottie player (web component) — for premium animated pets.
+       Loaded once; renders <dotlottie-player> elements anywhere in the DOM. -->
+  <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+
+  <!-- Modules — order matters: dependencies first, init last -->
+  <script src="scripts/pets-svg.js"></script>     <!-- legacy fallback for old player data -->
+  <script src="scripts/state.js"></script>
+  <script src="scripts/pets-pool.js"></script>    <!-- new pet pool with rarity tiers + mystery egg -->
+  <script src="scripts/ui.js"></script>
+  <script src="scripts/audio.js"></script>
+  <script src="scripts/hatching.js"></script>
+  <script src="scripts/pet-system.js"></script>
+  <script src="scripts/screens.js"></script>
+  <script src="scripts/quests-rewards.js"></script>
+  <script src="scripts/parent.js"></script>
+  <script src="scripts/ai.js"></script>
+  <script src="scripts/math-tutor.js"></script>
+  <script src="scripts/app.js"></script>
 </body>
 </html>
