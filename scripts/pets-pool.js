@@ -216,65 +216,123 @@ window.PETS_POOL = [
   }
 ];
 
-// ──────────────────────── Mystery Egg (rainbow, no preview) ────────────────────────
-// Shown for every player at stage 0. Designed to POP on dark background —
-// vivid pink/purple/blue gradient, strong glow, floating sparkles.
-// Never reveals what's inside.
+// ──────────────────────── Mystery Egg — Galaxy Orb (rainbow, no preview) ────────────────────────
+// Shown for every player at stage 0. Translucent glass shell with a live galaxy
+// spinning inside (rotation + pulsing core + drifting sparkles via animations.css).
+// Class hooks: go-aura / go-galaxy / go-core / go-shine / go-sp-1..6.
+// Never reveals what's inside — the galaxy gives it a "something amazing is in
+// there" feel without spoiling the pet.
 window.MYSTERY_EGG_SVG = `<svg viewBox="0 0 200 200"><defs>
-<linearGradient id="egShell" x1="0%" y1="0%" x2="100%" y2="100%">
-<stop offset="0%" stop-color="#ff9ec7"/>
-<stop offset="30%" stop-color="#ff66c4"/>
-<stop offset="55%" stop-color="#c490ff"/>
-<stop offset="80%" stop-color="#7dc8ff"/>
-<stop offset="100%" stop-color="#ffb3e0"/>
-</linearGradient>
-<radialGradient id="egShine" cx="32%" cy="28%" r="38%">
-<stop offset="0%" stop-color="rgba(255,255,255,0.95)"/>
-<stop offset="60%" stop-color="rgba(255,255,255,0.25)"/>
-<stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-</radialGradient>
-<radialGradient id="egGlow" cx="50%" cy="50%" r="50%">
+<radialGradient id="goAura" cx="50%" cy="50%" r="50%">
 <stop offset="0%" stop-color="rgba(255,150,220,0.55)"/>
-<stop offset="55%" stop-color="rgba(180,140,255,0.35)"/>
+<stop offset="45%" stop-color="rgba(180,140,255,0.32)"/>
 <stop offset="100%" stop-color="rgba(125,200,255,0)"/>
 </radialGradient>
+<radialGradient id="goSpace" cx="50%" cy="50%" r="70%">
+<stop offset="0%" stop-color="#3a1f6b"/>
+<stop offset="50%" stop-color="#1a0a3a"/>
+<stop offset="100%" stop-color="#050218"/>
+</radialGradient>
+<radialGradient id="goNeb1" cx="50%" cy="50%" r="50%">
+<stop offset="0%" stop-color="#ff66c4" stop-opacity="0.85"/>
+<stop offset="100%" stop-color="#ff66c4" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="goNeb2" cx="50%" cy="50%" r="50%">
+<stop offset="0%" stop-color="#7dc8ff" stop-opacity="0.8"/>
+<stop offset="100%" stop-color="#7dc8ff" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="goNeb3" cx="50%" cy="50%" r="50%">
+<stop offset="0%" stop-color="#c490ff" stop-opacity="0.75"/>
+<stop offset="100%" stop-color="#c490ff" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="goCoreGrad" cx="50%" cy="50%" r="50%">
+<stop offset="0%" stop-color="#ffffff"/>
+<stop offset="35%" stop-color="#ffd700" stop-opacity="0.85"/>
+<stop offset="100%" stop-color="#ffd700" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="goShell" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="rgba(255,200,250,0.55)"/>
+<stop offset="35%" stop-color="rgba(180,160,255,0.28)"/>
+<stop offset="65%" stop-color="rgba(125,200,255,0.28)"/>
+<stop offset="100%" stop-color="rgba(255,200,250,0.45)"/>
+</linearGradient>
+<radialGradient id="goShineGrad" cx="32%" cy="28%" r="38%">
+<stop offset="0%" stop-color="rgba(255,255,255,0.9)"/>
+<stop offset="55%" stop-color="rgba(255,255,255,0.25)"/>
+<stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+</radialGradient>
+<clipPath id="goClip">
+<ellipse cx="100" cy="115" rx="62" ry="78"/>
+</clipPath>
 </defs>
 
-<!-- Outer aura -->
-<circle cx="100" cy="115" r="92" fill="url(#egGlow)"/>
+<!-- Outer aura (pulses) -->
+<circle class="go-aura" cx="100" cy="115" r="92" fill="url(#goAura)"/>
 
-<!-- Egg shell -->
-<ellipse cx="100" cy="115" rx="64" ry="80" fill="url(#egShell)" stroke="#fff" stroke-width="2.5" opacity="0.98"/>
-<ellipse cx="100" cy="115" rx="64" ry="80" fill="none" stroke="#9b6dff" stroke-width="1"/>
+<!-- Galaxy inside the shell, clipped to the egg shape -->
+<g clip-path="url(#goClip)">
+  <!-- Deep space backdrop -->
+  <rect x="36" y="35" width="128" height="160" fill="url(#goSpace)"/>
 
-<!-- Decorative band 1 -->
-<path d="M 45 130 Q 100 122 155 130" stroke="#fff" stroke-width="2.5" fill="none" opacity="0.85"/>
-<polygon points="60,124 65,131 60,138 55,131" fill="#fff" stroke="#ff3399" stroke-width="1.5"/>
-<polygon points="100,117 105,125 100,133 95,125" fill="#fff" stroke="#9b6dff" stroke-width="1.5"/>
-<polygon points="140,124 145,131 140,138 135,131" fill="#fff" stroke="#3a9bff" stroke-width="1.5"/>
+  <!-- Background stars (tiny) -->
+  <g fill="#fff">
+    <circle cx="60" cy="80" r="1.2"/>
+    <circle cx="145" cy="70" r="0.9"/>
+    <circle cx="75" cy="155" r="1.1"/>
+    <circle cx="135" cy="170" r="1.3"/>
+    <circle cx="50" cy="125" r="0.8"/>
+    <circle cx="155" cy="130" r="1"/>
+    <circle cx="85" cy="50" r="0.9"/>
+    <circle cx="120" cy="90" r="1.2"/>
+    <circle cx="70" cy="180" r="1"/>
+    <circle cx="148" cy="100" r="0.8"/>
+    <circle cx="55" cy="55" r="0.7"/>
+    <circle cx="165" cy="155" r="0.9"/>
+  </g>
 
-<!-- Decorative band 2 -->
-<path d="M 50 160 Q 100 152 150 160" stroke="#fff" stroke-width="2" fill="none" opacity="0.75"/>
-<circle cx="70" cy="158" r="3.5" fill="#fff" stroke="#ff66c4" stroke-width="1.5"/>
-<circle cx="100" cy="154" r="3.5" fill="#fff" stroke="#9b6dff" stroke-width="1.5"/>
-<circle cx="130" cy="158" r="3.5" fill="#fff" stroke="#3a9bff" stroke-width="1.5"/>
+  <!-- Sparkle stars (4-point) -->
+  <g fill="#fff">
+    <polygon points="100,52 102,60 100,55 98,60"/>
+    <polygon points="140,142 142,150 140,145 138,150"/>
+    <polygon points="55,172 57,180 55,175 53,180"/>
+  </g>
+
+  <!-- Spiral galaxy — rotates slowly via .go-galaxy -->
+  <g class="go-galaxy">
+    <ellipse cx="100" cy="115" rx="50" ry="22" fill="url(#goNeb1)" transform="rotate(20 100 115)"/>
+    <ellipse cx="100" cy="115" rx="48" ry="20" fill="url(#goNeb2)" transform="rotate(-25 100 115)"/>
+    <ellipse cx="100" cy="115" rx="42" ry="16" fill="url(#goNeb3)" transform="rotate(60 100 115)"/>
+    <!-- Spiral arm streaks -->
+    <path d="M 60 115 Q 80 100 100 115 Q 120 130 140 115" stroke="#ff9ec7" stroke-width="2" fill="none" opacity="0.6"/>
+    <path d="M 65 95 Q 85 88 100 115 Q 115 142 135 135" stroke="#7dc8ff" stroke-width="1.8" fill="none" opacity="0.55"/>
+  </g>
+
+  <!-- Bright central core (pulses) -->
+  <circle class="go-core" cx="100" cy="115" r="14" fill="url(#goCoreGrad)"/>
+  <circle cx="100" cy="115" r="3" fill="#fff"/>
+</g>
+
+<!-- Translucent glass shell drawn ON TOP of the galaxy -->
+<ellipse cx="100" cy="115" rx="64" ry="80" fill="url(#goShell)" stroke="#fff" stroke-width="2" opacity="0.95"/>
+<ellipse cx="100" cy="115" rx="64" ry="80" fill="none" stroke="#c490ff" stroke-width="1" opacity="0.55"/>
+
+<!-- Glass highlight + rim shimmers -->
+<ellipse class="go-shine" cx="80" cy="78" rx="22" ry="32" fill="url(#goShineGrad)"/>
+<path d="M 50 90 Q 45 115 55 145" stroke="#fff" stroke-width="1.5" fill="none" opacity="0.45"/>
+<path d="M 150 90 Q 155 115 145 145" stroke="#fff" stroke-width="1.5" fill="none" opacity="0.4"/>
 
 <!-- Top crown -->
 <polygon points="90,42 100,24 110,42" fill="#ffd700" stroke="#a87800" stroke-width="2"/>
 <circle cx="100" cy="28" r="3.5" fill="#fff"/>
+<polygon points="96,18 100,8 104,18" fill="#fff" stroke="#a87800" stroke-width="1"/>
 
-<!-- Highlight (shine) -->
-<ellipse cx="80" cy="78" rx="20" ry="30" fill="url(#egShine)"/>
-
-<!-- Floating sparkles -->
-<polygon points="30,55 34,62 30,58 26,62" fill="#ff66c4"/>
-<circle cx="35" cy="48" r="2.5" fill="#fff"/>
-<polygon points="170,55 174,62 170,58 166,62" fill="#7dc8ff"/>
-<circle cx="167" cy="48" r="2.5" fill="#fff"/>
-<polygon points="22,168 26,175 22,171 18,175" fill="#c490ff"/>
-<circle cx="178" cy="168" r="3" fill="#ffd700"/>
-<polygon points="45,192 49,199 45,195 41,199" fill="#ff9ec7"/>
-<circle cx="155" cy="190" r="2.5" fill="#fff"/>
+<!-- Floating outer sparkles (drift via .go-sp-N) -->
+<g class="go-sp go-sp-1"><polygon points="30,55 34,62 30,58 26,62" fill="#ff66c4"/><circle cx="35" cy="48" r="2.5" fill="#fff"/></g>
+<g class="go-sp go-sp-2"><polygon points="170,55 174,62 170,58 166,62" fill="#7dc8ff"/><circle cx="167" cy="48" r="2.5" fill="#fff"/></g>
+<g class="go-sp go-sp-3"><polygon points="22,168 26,175 22,171 18,175" fill="#c490ff"/></g>
+<g class="go-sp go-sp-4"><circle cx="178" cy="168" r="3" fill="#ffd700"/></g>
+<g class="go-sp go-sp-5"><polygon points="45,192 49,199 45,195 41,199" fill="#ff9ec7"/></g>
+<g class="go-sp go-sp-6"><circle cx="155" cy="190" r="2.5" fill="#fff"/></g>
 <polygon points="100,5 103,12 100,9 97,12" fill="#fff"/>
 </svg>`;
 

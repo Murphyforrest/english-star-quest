@@ -2,7 +2,7 @@
 // without internet. AI calls always go through the network (no caching).
 
 // Bump this when shipping JS/CSS changes so stale caches are evicted on next load.
-const CACHE_NAME = 'esq-shell-v30-parent-ui';
+const CACHE_NAME = 'esq-shell-v31-galaxy-egg';
 const SHELL = [
   './',
   './index.html',
