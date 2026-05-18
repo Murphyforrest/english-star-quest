@@ -2,7 +2,7 @@
 // without internet. AI calls always go through the network (no caching).
 
 // Bump this when shipping JS/CSS changes so stale caches are evicted on next load.
-const CACHE_NAME = 'esq-shell-v33-star-economy';
+const CACHE_NAME = 'esq-shell-v34-daily-lesson';
 const SHELL = [
   './',
   './index.html',
@@ -21,7 +21,9 @@ const SHELL = [
   './scripts/quests-rewards.js',
   './scripts/parent.js',
   './scripts/ai.js',
+  './scripts/math-curriculum.js',
   './scripts/math-tutor.js',
+  './scripts/math-lesson.js',
   './scripts/app.js'
 ];
 

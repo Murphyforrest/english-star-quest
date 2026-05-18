@@ -70,9 +70,12 @@
       <div id="econBadges" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px"></div>
     </div>
 
-    <div style="text-align:center;margin:8px 0 16px">
-      <button class="btn-primary tutor-launch-btn" onclick="openMathTutor()" style="padding:14px 28px;font-size:16px;background:linear-gradient(135deg,#7dc8ff,#c490ff,#ff66c4);background-size:200% 100%;animation:gs 4s linear infinite">
-        📚 เรียนคณิตอังกฤษกับ AI Tutor
+    <div style="text-align:center;margin:8px 0 16px;display:flex;flex-direction:column;gap:8px;align-items:center">
+      <button class="btn-primary tutor-launch-btn" onclick="openDailyLesson()" style="padding:14px 28px;font-size:16px;background:linear-gradient(135deg,#ffd700,#ff66c4,#c490ff);background-size:200% 100%;animation:gs 4s linear infinite">
+        🎓 บทเรียนวันนี้ <span id="lessonProgress" style="font-size:13px;opacity:.9"></span>
+      </button>
+      <button class="btn-secondary tutor-launch-btn" onclick="openMathTutor()" style="padding:10px 22px;font-size:14px">
+        💬 เล่นเพิ่มกับ AI Tutor (free chat)
       </button>
     </div>
 
@@ -195,7 +198,9 @@
   <script src="scripts/quests-rewards.js"></script>
   <script src="scripts/parent.js"></script>
   <script src="scripts/ai.js"></script>
+  <script src="scripts/math-curriculum.js"></script>
   <script src="scripts/math-tutor.js"></script>
+  <script src="scripts/math-lesson.js"></script>
   <script src="scripts/app.js"></script>
 </body>
 </html>

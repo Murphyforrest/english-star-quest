@@ -90,6 +90,14 @@ window.renderDashboard = function() {
     document.getElementById('petProgressText').textContent = '🏆 LEGENDARY! 🏆';
   }
 
+  // Phase 4b — Daily Lesson progress badge on the lesson button (e.g. "3/10")
+  const lessonProg = document.getElementById('lessonProgress');
+  if (lessonProg) {
+    const mastered = (window.countMasteredLessons && countMasteredLessons(p)) || 0;
+    const total = (window.countTotalLessons && countTotalLessons()) || 0;
+    lessonProg.textContent = total ? '(' + mastered + '/' + total + ')' : '';
+  }
+
   // Collection / Active Pet buttons — only shown once the kid has unlocked
   // anything. Switch button waits until they've hatched 2+ so it doesn't
   // sit there teasing an empty picker.

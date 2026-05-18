@@ -29,7 +29,7 @@ window.state = {
   players: [],
   rewards: [],
   currentPlayer: null,
-  version: 3
+  version: 4
 };
 
 // Star economy (Phase 3.6) — anti-grinding cap + streak multipliers + milestone bonuses.
@@ -213,13 +213,19 @@ window.migrateState = function(s) {
     if (!p.streakBonusClaimed || typeof p.streakBonusClaimed !== 'object') {
       p.streakBonusClaimed = {};
     }
+    // Phase 4b — curriculum progress (Daily Lesson). Every player starts at
+    // Unit 1 Lesson 1 of Place Value; completed lessons tracked by ID.
+    if (!p.curriculum || typeof p.curriculum !== 'object') {
+      p.curriculum = { currentUnit: 1, currentLesson: 1, completedLessons: {} };
+    }
+    if (!p.curriculum.completedLessons) p.curriculum.completedLessons = {};
     // Keep p.petId as a deprecated mirror of activePetId so legacy reads don't break.
     if (p.activePetId) p.petId = p.activePetId;
   });
 
   // Drop the legacy global quests field after migration.
   delete s.quests;
-  s.version = 3;
+  s.version = 4;
   return s;
 };
 

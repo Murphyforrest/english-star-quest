@@ -17,11 +17,66 @@ window.MathTutor = (function () {
   let recognition = null;
   let isListening = false;
 
+  // Phase 4b — lesson mode. When set, systemPrompt() appends a strict lesson
+  // section that pins the AI to a curriculum lesson; when null, the tutor
+  // behaves in free-chat practice mode (its original behavior).
+  let currentLesson = null;
+  let currentTutorName = 'Pixel'; // overridden by the player's active pet name
+
+  // Build a lesson-specific instructions block appended to the system prompt
+  // when a Daily Lesson is in progress. The AI follows this rigidly instead of
+  // free-form picking topics.
+  function lessonInjection(lesson, name) {
+    if (!lesson) return '';
+    const fmtVocab = (lesson.newVocab || []).map(v =>
+      `  - "${v.en}" (${v.th}) — ${v.example || ''}`
+    ).join('\n') || '  (none — review-only lesson)';
+    const fmtScript = (lesson.conceptScript || []).map((s, i) => `  ${i+1}. ${s}`).join('\n');
+    const fmtGuided = (lesson.guidedProblems || []).map((p, i) =>
+      `  ${i+1}. Q: "${p.q}"  ANSWER: ${p.a}  HINT: ${p.hint || '(work it through together)'}`
+    ).join('\n');
+    const fmtIndep = (lesson.independentProblems || []).map((p, i) =>
+      `  ${i+1}. Q: "${p.q}"  ANSWER: ${p.a}`
+    ).join('\n');
+    return [
+      ``,
+      `━━━━━━━━━━━━━━━ ★★★ TODAY'S LESSON — FOLLOW EXACTLY ★★★ ━━━━━━━━━━━━━━━`,
+      `This OVERRIDES the generic "DAILY FOCUS" section above. Stay on this lesson the entire session.`,
+      ``,
+      `📘 LESSON: ${lesson.nameEn} (${lesson.nameTh})`,
+      `🎯 CONCEPT: ${lesson.concept}`,
+      ``,
+      `📖 NEW VOCAB to teach (introduce each word with English → Thai → example):`,
+      fmtVocab,
+      ``,
+      `🔥 WARMUP (1-2 turns): ${lesson.warmupPrompt}`,
+      ``,
+      `💡 NEW CONCEPT — explain using these key points in order (CPA, with emoji visuals):`,
+      fmtScript,
+      ``,
+      `🤝 GUIDED PRACTICE — use these EXACT problems (give hint freely if needed):`,
+      fmtGuided,
+      ``,
+      `🦅 INDEPENDENT PRACTICE — same format, NO hint unless they ask 2x:`,
+      fmtIndep,
+      ``,
+      `🎉 WRAP-UP (1 turn): celebrate, summarize the concept, list the new vocab they learned, end your message with the EXACT phrase "LESSON COMPLETE!" so the game knows to award stars and unlock the next lesson.`,
+      ``,
+      `RULES SPECIFIC TO THIS LESSON:`,
+      `- Use the EXACT problems above — do NOT invent new ones. The parent has curated them.`,
+      `- Move through phases in order: warmup → concept → guided → independent → wrap-up.`,
+      `- After each correct answer, say "+1 star ⭐" (game tracks this).`,
+      `- When all problems are done, say "LESSON COMPLETE!" — this signal ends the session.`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+    ].join('\n');
+  }
+
   // ───────────────────────── System prompt (the tutor's personality + pedagogy) ─────────────────────────
   function systemPrompt(player) {
     const name = (player && player.name) || 'friend';
+    const tutorName = currentTutorName || 'Pixel';
     return [
-      `You are PIXEL ✨ — a world-class math tutor for ${name} (age 8, Grade 3, just starting international school where ALL lessons are in English). You combine the warmth of a great kindergarten teacher with the rigor of Singapore Math. Your job: make ${name} BOTH excellent at math AND fluent in English math vocabulary, so they never feel lost at school.`,
+      `You are ${tutorName} ✨ — a world-class math tutor for ${name} (age 8, Grade 3, just starting international school where ALL lessons are in English). You combine the warmth of a great kindergarten teacher with the rigor of Singapore Math. Your job: make ${name} BOTH excellent at math AND fluent in English math vocabulary, so they never feel lost at school.`,
       ``,
       `━━━━━━━━━━━━━━━ PERSONALITY ━━━━━━━━━━━━━━━`,
       `- Excited and warm. Use "Wow!" "Yay!" "Look!" "Cool!" "Awesome!" "Amazing!"`,
@@ -147,7 +202,8 @@ window.MathTutor = (function () {
       ``,
       `━━━━━━━━━━━━━━━ STAR REWARDS ━━━━━━━━━━━━━━━`,
       `After each CORRECT answer, mention "+1 star ⭐" so the game awards it.`,
-      `After session closing, mention "+5 bonus stars ⭐⭐⭐⭐⭐".`
+      `After session closing, mention "+5 bonus stars ⭐⭐⭐⭐⭐".`,
+      lessonInjection(currentLesson, name)
     ].join('\n');
   }
 
@@ -426,6 +482,11 @@ window.MathTutor = (function () {
 
       addMessage('assistant', text);
 
+      // Phase 4b — let lesson mode detect "LESSON COMPLETE!" and auto-finish.
+      if (currentLesson && /LESSON\s+COMPLETE/i.test(text)) {
+        setTimeout(() => endSession(), 1800);
+      }
+
       // Track stars Claude awarded in-message
       const newStars = countStarsInReply(text);
       if (newStars > 0) {
@@ -515,8 +576,12 @@ window.MathTutor = (function () {
     sessionActive = true;
     updateStarCount();
     if (el()) el().innerHTML = '';
-    // Kick off by asking the AI to greet & introduce today's lesson.
-    sendToAI("Hi! I'm ready to learn math today.");
+    // In lesson mode, kick off explicitly so the AI starts the warmup phase.
+    // In free-chat mode, just say hi and let the AI pick a topic.
+    const opener = currentLesson
+      ? `Hi ${currentTutorName || 'tutor'}! I'm ready for today's lesson: ${currentLesson.nameEn}. Please start the warm-up.`
+      : "Hi! I'm ready to learn math today.";
+    sendToAI(opener);
   }
 
   function endSession() {
@@ -524,6 +589,12 @@ window.MathTutor = (function () {
     sessionActive = false;
     const player = getCurrentPlayer();
     if (!player) return;
+
+    // If this was a Daily Lesson, hand off to the lesson module so it can
+    // save mastery + unlock the next lesson. Stars are still awarded below.
+    if (currentLesson && window.DailyLesson && DailyLesson.finishLesson) {
+      try { DailyLesson.finishLesson(player, currentLesson, starsThisSession); } catch (e) {}
+    }
 
     // Award all earned stars to the real player
     if (starsThisSession > 0) {
@@ -547,6 +618,8 @@ window.MathTutor = (function () {
     } else {
       addMessage('system', '👋 จบเซสชั่นแล้ว ลูกได้ฝึกแล้วเก่งขึ้น! ครั้งหน้าได้ดาวแน่ ⭐');
     }
+    // Clear lesson context so the next free-chat session is not pinned to it.
+    currentLesson = null;
   }
 
   // ───────────────────────── iOS audio unlock (covers BOTH paths) ─────────────────────────
@@ -575,6 +648,9 @@ window.MathTutor = (function () {
     open() {
       // CRITICAL: must run inside the user's click handler for iOS to permit speech later
       unlockAllAudio();
+      // Free-chat mode — clear any pinned lesson and use default tutor name.
+      currentLesson = null;
+      currentTutorName = 'Pixel';
       showScreen('tutorScreen');
       const player = getCurrentPlayer();
       if (!player) {
@@ -583,13 +659,35 @@ window.MathTutor = (function () {
       }
       if (!sessionActive) startSession();
     },
+    // Lesson mode — pinned to a specific curriculum lesson with a named tutor
+    // (usually the kid's active pet, e.g. "Rainbow Dragon"). Called by DailyLesson.start.
+    openWithLesson(lesson, tutorName) {
+      unlockAllAudio();
+      currentLesson = lesson || null;
+      currentTutorName = tutorName || 'Pixel';
+      // Always start a fresh session — never resume mid free-chat into a lesson.
+      sessionActive = false;
+      showScreen('tutorScreen');
+      const player = getCurrentPlayer();
+      if (!player) {
+        addMessage('system', 'เลือกผู้เล่นก่อนนะครับ');
+        return;
+      }
+      startSession();
+    },
     close() {
       if (sessionActive) endSession();
       goBack();
     },
     talk: startListening,
     send: sendTyped,
-    end:  endSession
+    end:  endSession,
+    // Lets DailyLesson watch for the "LESSON COMPLETE!" signal from the AI.
+    onAssistantMessage(text) {
+      if (currentLesson && /LESSON COMPLETE/i.test(text)) {
+        setTimeout(() => endSession(), 1500);
+      }
+    }
   };
 })();
 
