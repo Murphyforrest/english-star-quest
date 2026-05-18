@@ -313,28 +313,48 @@ window.getLessonById = function(lessonId) {
   return null;
 };
 
+// Flatten the curriculum into a sequenced [{unit, lesson}] list — used by both
+// the lesson picker and the parent's "start from here" dropdown so the order
+// stays consistent.
+window.getAllLessonsInOrder = function() {
+  const list = [];
+  for (const unit of MATH_CURRICULUM.units) {
+    for (const lesson of unit.lessons) {
+      list.push({ unit, lesson });
+    }
+  }
+  return list;
+};
+
 // Returns the lesson the player should do today.
+// - Respects player.curriculum.startFromLesson if set (parent override — kid
+//   joins from the lesson their school is currently teaching).
 // - If they haven't started anything → first lesson of unit 1.
 // - If they've completed their current lesson at 80%+ → next lesson.
 // - Otherwise → re-do the current lesson (mastery threshold not met).
 window.getNextLessonForPlayer = function(player) {
   if (!player) return null;
-  const curr = player.curriculum || { currentUnit: 1, currentLesson: 1, completedLessons: {} };
+  const curr = player.curriculum || {};
   const completed = curr.completedLessons || {};
+  const startFrom = curr.startFromLesson;
 
-  // Walk units in order, find first lesson with no completion (or score < 80).
-  for (const unit of MATH_CURRICULUM.units) {
-    for (const lesson of unit.lessons) {
-      const record = completed[lesson.id];
-      if (!record || (record.score || 0) < 80) {
-        return { unit, lesson, isReview: !!record };
-      }
+  // Build the search list, starting from the parent-chosen lesson if any.
+  let searchList = getAllLessonsInOrder();
+  if (startFrom) {
+    const idx = searchList.findIndex(x => x.lesson.id === startFrom);
+    if (idx > 0) searchList = searchList.slice(idx);
+  }
+
+  for (const { unit, lesson } of searchList) {
+    const record = completed[lesson.id];
+    if (!record || (record.score || 0) < 80) {
+      return { unit, lesson, isReview: !!record };
     }
   }
   // Player finished everything available — return last lesson for re-practice.
-  const lastUnit = MATH_CURRICULUM.units[MATH_CURRICULUM.units.length - 1];
-  const lastLesson = lastUnit.lessons[lastUnit.lessons.length - 1];
-  return { unit: lastUnit, lesson: lastLesson, isReview: true, allDone: true };
+  const all = getAllLessonsInOrder();
+  const last = all[all.length - 1];
+  return { unit: last.unit, lesson: last.lesson, isReview: true, allDone: true };
 };
 
 // Count lessons completed at ≥80% (for the progress badge on the dashboard).

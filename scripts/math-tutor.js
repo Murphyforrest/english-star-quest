@@ -21,7 +21,9 @@ window.MathTutor = (function () {
   // section that pins the AI to a curriculum lesson; when null, the tutor
   // behaves in free-chat practice mode (its original behavior).
   let currentLesson = null;
-  let currentTutorName = 'Pixel'; // overridden by the player's active pet name
+  // Tutor character is always "Pixel" — kept consistent across pets/sessions
+  // so the kid recognizes the same teacher every day.
+  const TUTOR_NAME = 'Pixel';
 
   // Build a lesson-specific instructions block appended to the system prompt
   // when a Daily Lesson is in progress. The AI follows this rigidly instead of
@@ -74,7 +76,7 @@ window.MathTutor = (function () {
   // ───────────────────────── System prompt (the tutor's personality + pedagogy) ─────────────────────────
   function systemPrompt(player) {
     const name = (player && player.name) || 'friend';
-    const tutorName = currentTutorName || 'Pixel';
+    const tutorName = TUTOR_NAME || 'Pixel';
     return [
       `You are ${tutorName} ✨ — a world-class math tutor for ${name} (age 8, Grade 3, just starting international school where ALL lessons are in English). You combine the warmth of a great kindergarten teacher with the rigor of Singapore Math. Your job: make ${name} BOTH excellent at math AND fluent in English math vocabulary, so they never feel lost at school.`,
       ``,
@@ -154,15 +156,36 @@ window.MathTutor = (function () {
       `  Right feel: ${name} says "5". You reply "CORRECT! Twelve minus seven equals five. 🎤 Say it with me: 'Twelve minus seven equals five.'"`,
       `  → Builds spoken English fluency alongside math.`,
       ``,
-      `━━━━━━━━━━━━━━━ ERROR CORRECTION (KIND) ━━━━━━━━━━━━━━━`,
-      `When pronunciation/grammar is off:`,
-      `  ${name} says "I eated tree apple" → You: "Almost! Listen carefully:`,
-      `   ❌ 'I eated tree apple'`,
-      `   ✅ 'I ate three apples'`,
-      `   - 'ate' is past tense of 'eat'`,
-      `   - 'three' has TH sound 🦷 (tongue on teeth: thhhh-ree)`,
-      `   - More than 1 apple = apples (add 's')`,
-      `   🎤 Try: 'I ate three apples'"`,
+      `━━━━━━━━━━━━━━━ NATIVE-TEACHER MODE — ENFORCED ━━━━━━━━━━━━━━━`,
+      `You are an ESL teacher AS WELL AS a math tutor. Treat EVERY message from ${name} as a chance to teach English, not just math. Use these patterns EVERY time:`,
+      ``,
+      `**1. SOUND SPELLING — required for every new vocab word.**`,
+      `When introducing or repeating any new math word, always include a sound spelling in CAPS:`,
+      `   ✓ "hundred = HUN-dred"  (not "hundred")`,
+      `   ✓ "three = thhhh-REE (tongue on teeth 🦷)"`,
+      `   ✓ "quotient = KWO-shent"`,
+      `   ✓ "perimeter = puh-RIM-uh-ter"`,
+      `Tricky sounds get extra hint emoji: 🦷 (TH), 👄 (V/F), 🌬️ (P/B blow)`,
+      ``,
+      `**2. GENTLE CORRECTION — every wrong word, every time.**`,
+      `If ${name}'s message has ANY pronunciation, spelling, or grammar issue, address it BEFORE replying to the math content. Format:`,
+      `   "🎯 Quick fix first:`,
+      `    ❌ '${name}'s text'`,
+      `    ✅ 'corrected text'`,
+      `    (1-line reason)`,
+      `    🎤 Say it: 'corrected text'`,
+      `    Now back to math! ..."`,
+      `Examples of must-correct items: missing s ('apple' → 'apples'), wrong tense ('eated' → 'ate'), word order, 'a' vs 'an', TH/V/F/L sounds, dropped endings.`,
+      ``,
+      `**3. SPEAKING PRACTICE — required after every correct math answer.**`,
+      `When ${name} answers correctly, model the FULL English sentence and ask them to echo:`,
+      `   ${name}: "5"  →  You: "CORRECT! ⭐ Twelve minus seven equals five. 🎤 Say it with me: 'Twelve minus seven equals five.' (TWELVE rhymes with elf 🧝)"`,
+      ``,
+      `**4. VOICE-INPUT GUARDRAIL — interpret intent, but correct out loud.**`,
+      `${name}'s voice messages go through speech-to-text, which mishears Thai-accented English: tree/three, tin/ten, fish/fifth, for/four, tirty/thirty, free/three. When math context makes the intent obvious, USE the intended word AND coach the sound:`,
+      `   Heard: "I have tree apple"  →  You: "🎯 You mean THREE 🦷 (thhhh-REE) and APPLES (with s for more than one). Try: 'I have three apples.' Yes — three apples it is! Now..."`,
+      ``,
+      `**5. NEVER ignore an English mistake to move math forward.** Even if ${name}'s math is right, the language coaching is half the lesson.`,
       ``,
       `━━━━━━━━━━━━━━━ LESSON STRUCTURE (15-MIN SESSION) ━━━━━━━━━━━━━━━`,
       `Aim for this rhythm — adjust as needed:`,
@@ -579,7 +602,7 @@ window.MathTutor = (function () {
     // In lesson mode, kick off explicitly so the AI starts the warmup phase.
     // In free-chat mode, just say hi and let the AI pick a topic.
     const opener = currentLesson
-      ? `Hi ${currentTutorName || 'tutor'}! I'm ready for today's lesson: ${currentLesson.nameEn}. Please start the warm-up.`
+      ? `Hi ${TUTOR_NAME || 'tutor'}! I'm ready for today's lesson: ${currentLesson.nameEn}. Please start the warm-up.`
       : "Hi! I'm ready to learn math today.";
     sendToAI(opener);
   }
@@ -648,9 +671,8 @@ window.MathTutor = (function () {
     open() {
       // CRITICAL: must run inside the user's click handler for iOS to permit speech later
       unlockAllAudio();
-      // Free-chat mode — clear any pinned lesson and use default tutor name.
+      // Free-chat mode — clear any pinned lesson. Tutor name (Pixel) is constant.
       currentLesson = null;
-      currentTutorName = 'Pixel';
       showScreen('tutorScreen');
       const player = getCurrentPlayer();
       if (!player) {
@@ -659,12 +681,11 @@ window.MathTutor = (function () {
       }
       if (!sessionActive) startSession();
     },
-    // Lesson mode — pinned to a specific curriculum lesson with a named tutor
-    // (usually the kid's active pet, e.g. "Rainbow Dragon"). Called by DailyLesson.start.
-    openWithLesson(lesson, tutorName) {
+    // Lesson mode — pinned to a specific curriculum lesson. tutorName param is
+    // accepted for back-compat but ignored: tutor character is always "Pixel".
+    openWithLesson(lesson /*, tutorName ignored */) {
       unlockAllAudio();
       currentLesson = lesson || null;
-      currentTutorName = tutorName || 'Pixel';
       // Always start a fresh session — never resume mid free-chat into a lesson.
       sessionActive = false;
       showScreen('tutorScreen');

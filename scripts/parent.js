@@ -62,6 +62,60 @@ function renderPlayerQuests(p) {
   '</div>';
 }
 
+// Curriculum start-point picker — parent tells us which lesson the child is
+// currently learning at school so the AI tutor jumps straight there instead
+// of starting from Lesson 1 every time. Persists in player.curriculum.startFromLesson.
+function renderCurriculumPicker(p) {
+  if (!window.MATH_CURRICULUM || !window.getAllLessonsInOrder) return '';
+  const curr = p.curriculum || {};
+  const currentStart = curr.startFromLesson || '';
+  const all = getAllLessonsInOrder();
+  let opts = '<option value="">— เริ่มจากต้น (U1L1) —</option>';
+  all.forEach(({ unit, lesson }, idx) => {
+    const lessonNum = unit.lessons.findIndex(l => l.id === lesson.id) + 1;
+    const label = 'U' + unit.id + 'L' + lessonNum + ': ' + lesson.nameTh + ' (' + lesson.nameEn + ')';
+    const selected = (lesson.id === currentStart) ? ' selected' : '';
+    opts += '<option value="' + lesson.id + '"' + selected + '>' + label + '</option>';
+  });
+  return '<div style="margin-top:14px;padding:12px;background:rgba(255,215,0,.06);border:1px dashed rgba(255,215,0,.3);border-radius:14px">' +
+    '<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:#ffd700">📚 ระดับการเรียนของ ' + p.name + ' (ตามที่ รร สอน)</div>' +
+    '<select onchange="setLessonStart(\'' + p.id + '\', this.value)" style="width:100%;padding:9px;border-radius:10px;background:rgba(20,15,40,.7);color:#fff;border:1px solid rgba(255,215,0,.4);font-size:13px;font-family:inherit">' +
+      opts +
+    '</select>' +
+    '<div style="font-size:11px;opacity:.6;margin-top:6px;line-height:1.4">' +
+      'AI จะเริ่มสอนจาก lesson ที่เลือก แล้วเดินต่อตามลำดับเมื่อลูกผ่าน 80% — ปรับใหม่ได้ทุกเมื่อเมื่อ รร เลื่อนหัวข้อ' +
+    '</div>' +
+  '</div>';
+}
+
+// Persist parent's curriculum-start choice. Clearing it (empty value) reverts
+// to "start from Unit 1 Lesson 1".
+window.setLessonStart = function(playerId, lessonId) {
+  const p = state.players.find(x => x.id === playerId);
+  if (!p) return;
+  if (!p.curriculum) p.curriculum = { currentUnit: 1, currentLesson: 1, completedLessons: {} };
+  if (lessonId) {
+    p.curriculum.startFromLesson = lessonId;
+    // Sync currentUnit/currentLesson to match so the dashboard badge feels right.
+    const all = (window.getAllLessonsInOrder && getAllLessonsInOrder()) || [];
+    const idx = all.findIndex(x => x.lesson.id === lessonId);
+    if (idx >= 0) {
+      p.curriculum.currentUnit = all[idx].unit.id;
+      const lessonNum = all[idx].unit.lessons.findIndex(l => l.id === lessonId) + 1;
+      p.curriculum.currentLesson = lessonNum;
+    }
+  } else {
+    delete p.curriculum.startFromLesson;
+  }
+  saveState();
+  // Refresh dashboard badge too in case this player is currently logged in
+  if (typeof renderDashboard === 'function' &&
+      document.getElementById('dashboard') &&
+      document.getElementById('dashboard').classList.contains('active')) {
+    renderDashboard();
+  }
+};
+
 // ── Hidden dev buttons: jump straight to a hatch animation without grinding 15 stars.
 // Use sparingly with kids around — these reveal the pet identity.
 function renderHatchTestButtons(p) {
@@ -124,6 +178,7 @@ window.renderParentMode = function() {
         renderPlayerHeader(p) +
         renderStarControls(p) +
         renderPlayerQuests(p) +
+        renderCurriculumPicker(p) +
         renderHatchTestButtons(p) +
       '</div>'
     ).join('');

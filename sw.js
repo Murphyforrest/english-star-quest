@@ -2,7 +2,7 @@
 // without internet. AI calls always go through the network (no caching).
 
 // Bump this when shipping JS/CSS changes so stale caches are evicted on next load.
-const CACHE_NAME = 'esq-shell-v34-daily-lesson';
+const CACHE_NAME = 'esq-shell-v35-pixel-pronunciation-curriculum-picker';
 const SHELL = [
   './',
   './index.html',

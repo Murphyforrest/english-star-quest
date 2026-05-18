@@ -12,14 +12,12 @@
 
 window.DailyLesson = (function () {
 
-  // The active pet's English name is what we call the tutor. Falls back to
-  // "Pixel" so brand-new players (no hatched pet yet) still get a friendly tutor.
-  function tutorNameFor(player) {
-    if (!player || !window.getPetById) return 'Pixel';
-    const activeId = (window.getActivePetId && getActivePetId(player)) || player.petId;
-    if (!activeId) return 'Pixel';
-    const pet = getPetById(activeId);
-    return (pet && pet.nameEn) || 'Pixel';
+  // Tutor is always "Pixel" — the kids built a relationship with that name
+  // and the parent prefers a consistent character across pet changes.
+  // The pet still appears as an avatar in the tutor UI, but the *name* is
+  // always Pixel for continuity.
+  function tutorNameFor(/* player */) {
+    return 'Pixel';
   }
 
   // Build the preview modal shown before the lesson starts. Gives the parent
